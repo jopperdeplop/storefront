@@ -3,6 +3,11 @@ const config = {
 	images: {
 		remotePatterns: [
 			{
+				protocol: "https",
+				hostname: "api.salp.shop",
+			},
+			{
+				// Keep the wildcard as a fallback, though specific is better
 				hostname: "*",
 			},
 		],
@@ -15,8 +20,8 @@ const config = {
 		process.env.NEXT_OUTPUT === "standalone"
 			? "standalone"
 			: process.env.NEXT_OUTPUT === "export"
-			  ? "export"
-			  : undefined,
+				? "export"
+				: undefined,
 };
 
 export default config;
