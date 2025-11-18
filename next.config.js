@@ -1,13 +1,20 @@
 /** @type {import('next').NextConfig} */
 const config = {
 	images: {
+		// We add the domain here for legacy support (often fixes Vercel 400 errors)
+		domains: ["api.salp.shop"],
+
+		// We add it here for modern Next.js support
 		remotePatterns: [
 			{
 				protocol: "https",
 				hostname: "api.salp.shop",
+				port: "",
+				pathname: "/**", // Allow any path after the domain
 			},
 			{
-				// Keep the wildcard as a fallback, though specific is better
+				// Keep the wildcard as a fallback
+				protocol: "https",
 				hostname: "*",
 			},
 		],
