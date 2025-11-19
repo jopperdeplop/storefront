@@ -28,8 +28,14 @@ export const StripeComponent = ({ config }: StripeComponentProps) => {
 
 		if (!rawData) return undefined;
 
+		const intent = rawData.paymentIntent || {};
+
 		return {
-			paymentIntent: rawData.paymentIntent,
+			paymentIntent: {
+				...intent,
+				// Map the App's response name (stripeClientSecret) to what Stripe Elements expects (client_secret)
+				client_secret: intent.client_secret || intent.stripeClientSecret,
+			},
 			// Handle both naming conventions
 			publishableKey: rawData.stripePublishableKey || rawData.publishableKey,
 		};
@@ -46,8 +52,8 @@ export const StripeComponent = ({ config }: StripeComponentProps) => {
 			paymentGateway: {
 				id: gatewayId,
 				data: {
-					// FIX: Simplify payload to pass Zod validation
 					paymentIntent: {
+						// "card" is required to trigger the correct flow in the Saleor App
 						paymentMethod: "card",
 					},
 				},
@@ -69,13 +75,17 @@ export const StripeComponent = ({ config }: StripeComponentProps) => {
 		[stripeData],
 	);
 
+	// Rendering Gate: Now checking for mapped client_secret
 	if (!stripePromise || !stripeData?.paymentIntent?.client_secret) {
 		return null;
 	}
 
 	return (
 		<Elements
-			options={{ clientSecret: stripeData.paymentIntent.client_secret, appearance: { theme: "stripe" } }}
+			options={{
+				clientSecret: stripeData.paymentIntent.client_secret,
+				appearance: { theme: "stripe" },
+			}}
 			stripe={stripePromise}
 		>
 			<CheckoutForm />
