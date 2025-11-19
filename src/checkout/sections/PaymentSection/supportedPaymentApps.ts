@@ -8,5 +8,7 @@ import { stripeGatewayId } from "./StripeElements/types";
 export const paymentMethodToComponent = {
 	[adyenGatewayId]: AdyenDropIn,
 	[stripeGatewayId]: StripeComponent,
+	// Add your ID here, pointing to the SAME component:
+	"saleor.app.payment.stripe": StripeComponent,
 	[dummyGatewayId]: DummyComponent,
 };
