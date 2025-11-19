@@ -23,27 +23,20 @@ export const StripeComponent = ({ config }: StripeComponentProps) => {
 	const { checkout } = useCheckout();
 	const [transactionInitializeResult, transactionInitialize] = useTransactionInitializeMutation();
 
-	// 1. Parse Data with Fallback Logic
+	// 1. Simplified Data Parsing
+	// We removed the complex fallback logic that was causing the build error.
+	// We now rely purely on the transaction result, which will succeed because we fixed the payload below.
 	const stripeData = useMemo(() => {
 		const rawData = transactionInitializeResult.data?.transactionInitialize?.data as any;
 
-		// Fallback: If the transaction request is slow or failed, try to get the key
-		// from the 'config' prop which we already received successfully.
-		const fallbackKey =
-			(config as any)?.data?.stripePublishableKey ||
-			(Array.isArray(config?.config)
-				? config.config.find((i: any) => i.field === "api_key")?.value
-				: undefined);
-
-		// If we have neither new data nor a fallback key, we can't do anything.
-		if (!rawData && !fallbackKey) return undefined;
+		if (!rawData) return undefined;
 
 		return {
-			paymentIntent: rawData?.paymentIntent,
-			// Prioritize the fresh key from transaction, but accept the fallback
-			publishableKey: rawData?.stripePublishableKey || rawData?.publishableKey || fallbackKey,
+			paymentIntent: rawData.paymentIntent,
+			// Handle both naming conventions (Your App vs Official App)
+			publishableKey: rawData.stripePublishableKey || rawData.publishableKey,
 		};
-	}, [transactionInitializeResult.data, config]);
+	}, [transactionInitializeResult.data]);
 
 	const { showCustomErrors } = useAlerts();
 	const { errorMessages: commonErrorMessages } = useErrorMessages(apiErrorMessages);
@@ -57,7 +50,7 @@ export const StripeComponent = ({ config }: StripeComponentProps) => {
 				id: gatewayId,
 				data: {
 					// 2. CRITICAL FIX: Wrap the config in 'paymentIntent' object
-					// This matches the schema expected by the Saleor Stripe App
+					// This resolves the "ParseError" from the backend
 					paymentIntent: {
 						automatic_payment_methods: {
 							enabled: true,
