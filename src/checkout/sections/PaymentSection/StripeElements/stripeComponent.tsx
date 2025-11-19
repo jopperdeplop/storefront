@@ -24,8 +24,6 @@ export const StripeComponent = ({ config }: StripeComponentProps) => {
 	const [transactionInitializeResult, transactionInitialize] = useTransactionInitializeMutation();
 
 	// 1. Simplified Data Parsing
-	// We removed the complex fallback logic that was causing the build error.
-	// We now rely purely on the transaction result, which will succeed because we fixed the payload below.
 	const stripeData = useMemo(() => {
 		const rawData = transactionInitializeResult.data?.transactionInitialize?.data as any;
 
@@ -49,9 +47,9 @@ export const StripeComponent = ({ config }: StripeComponentProps) => {
 			paymentGateway: {
 				id: gatewayId,
 				data: {
-					// 2. CRITICAL FIX: Wrap the config in 'paymentIntent' object
-					// This resolves the "ParseError" from the backend
+					// 2. FIX: Provide the mandatory 'paymentMethod' identifier
 					paymentIntent: {
+						paymentMethod: "card", // <--- ADDED THIS: Required by the App to identify the flow
 						automatic_payment_methods: {
 							enabled: true,
 						},
