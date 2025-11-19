@@ -23,24 +23,32 @@ export const StripeComponent = ({ config }: StripeComponentProps) => {
 	const { checkout } = useCheckout();
 	const [transactionInitializeResult, transactionInitialize] = useTransactionInitializeMutation();
 
-	// 1. Fix React Hook Warning: Wrap this derivation in useMemo so it doesn't change on every render
+	// 1. Parse Data with Fallback Logic
 	const stripeData = useMemo(() => {
 		const rawData = transactionInitializeResult.data?.transactionInitialize?.data as any;
 
-		if (!rawData) return undefined;
+		// Fallback: If the transaction request is slow or failed, try to get the key
+		// from the 'config' prop which we already received successfully.
+		const fallbackKey =
+			(config as any)?.data?.stripePublishableKey ||
+			(Array.isArray(config?.config)
+				? config.config.find((i: any) => i.field === "api_key")?.value
+				: undefined);
+
+		// If we have neither new data nor a fallback key, we can't do anything.
+		if (!rawData && !fallbackKey) return undefined;
 
 		return {
-			paymentIntent: rawData.paymentIntent,
-			// Check for 'stripePublishableKey' (Your App) OR 'publishableKey' (Official App)
-			publishableKey: rawData.stripePublishableKey || rawData.publishableKey,
+			paymentIntent: rawData?.paymentIntent,
+			// Prioritize the fresh key from transaction, but accept the fallback
+			publishableKey: rawData?.stripePublishableKey || rawData?.publishableKey || fallbackKey,
 		};
-	}, [transactionInitializeResult.data]);
+	}, [transactionInitializeResult.data, config]);
 
 	const { showCustomErrors } = useAlerts();
 	const { errorMessages: commonErrorMessages } = useErrorMessages(apiErrorMessages);
 
 	useEffect(() => {
-		// 2. Use the ID from the config prop
 		const gatewayId = config?.id || "saleor.app.payment.stripe";
 
 		transactionInitialize({
@@ -48,8 +56,12 @@ export const StripeComponent = ({ config }: StripeComponentProps) => {
 			paymentGateway: {
 				id: gatewayId,
 				data: {
-					automatic_payment_methods: {
-						enabled: true,
+					// 2. CRITICAL FIX: Wrap the config in 'paymentIntent' object
+					// This matches the schema expected by the Saleor Stripe App
+					paymentIntent: {
+						automatic_payment_methods: {
+							enabled: true,
+						},
 					},
 				},
 			},
@@ -70,7 +82,8 @@ export const StripeComponent = ({ config }: StripeComponentProps) => {
 		[stripeData],
 	);
 
-	if (!stripePromise || !stripeData) {
+	// Wait until we have both the Stripe Library loaded AND the Client Secret from the server
+	if (!stripePromise || !stripeData?.paymentIntent?.client_secret) {
 		return null;
 	}
 
