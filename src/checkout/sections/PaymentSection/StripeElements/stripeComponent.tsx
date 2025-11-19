@@ -30,16 +30,22 @@ export const StripeComponent = ({ config }: StripeComponentProps) => {
 
 		const intent = rawData.paymentIntent || {};
 
+		// FALLBACK LOGIC:
+		// The transaction response didn't return the key, so we grab it from the 'config' prop
+		// which successfully received it during the previous initialization step.
+		const configData = config?.data || {};
+		const fallbackKey = configData.stripePublishableKey || configData.publishableKey;
+
 		return {
 			paymentIntent: {
 				...intent,
-				// Map the App's response name (stripeClientSecret) to what Stripe Elements expects (client_secret)
+				// Map the App's response name to what Stripe Elements expects
 				client_secret: intent.client_secret || intent.stripeClientSecret,
 			},
-			// Handle both naming conventions
-			publishableKey: rawData.stripePublishableKey || rawData.publishableKey,
+			// Try transaction data first, then fall back to config data
+			publishableKey: rawData.stripePublishableKey || rawData.publishableKey || fallbackKey,
 		};
-	}, [transactionInitializeResult.data]);
+	}, [transactionInitializeResult.data, config]);
 
 	const { showCustomErrors } = useAlerts();
 	const { errorMessages: commonErrorMessages } = useErrorMessages(apiErrorMessages);
@@ -53,7 +59,7 @@ export const StripeComponent = ({ config }: StripeComponentProps) => {
 				id: gatewayId,
 				data: {
 					paymentIntent: {
-						// "card" is required to trigger the correct flow in the Saleor App
+						// "card" triggers the correct flow in the Saleor App
 						paymentMethod: "card",
 					},
 				},
@@ -75,7 +81,7 @@ export const StripeComponent = ({ config }: StripeComponentProps) => {
 		[stripeData],
 	);
 
-	// Rendering Gate: Now checking for mapped client_secret
+	// Rendering Gate: Now we have the Secret (from Transaction) AND the Key (from Config)
 	if (!stripePromise || !stripeData?.paymentIntent?.client_secret) {
 		return null;
 	}
