@@ -23,7 +23,6 @@ export const StripeComponent = ({ config }: StripeComponentProps) => {
 	const { checkout } = useCheckout();
 	const [transactionInitializeResult, transactionInitialize] = useTransactionInitializeMutation();
 
-	// 1. Simplified Data Parsing
 	const stripeData = useMemo(() => {
 		const rawData = transactionInitializeResult.data?.transactionInitialize?.data as any;
 
@@ -31,7 +30,7 @@ export const StripeComponent = ({ config }: StripeComponentProps) => {
 
 		return {
 			paymentIntent: rawData.paymentIntent,
-			// Handle both naming conventions (Your App vs Official App)
+			// Handle both naming conventions
 			publishableKey: rawData.stripePublishableKey || rawData.publishableKey,
 		};
 	}, [transactionInitializeResult.data]);
@@ -47,12 +46,9 @@ export const StripeComponent = ({ config }: StripeComponentProps) => {
 			paymentGateway: {
 				id: gatewayId,
 				data: {
-					// 2. FIX: Provide the mandatory 'paymentMethod' identifier
+					// FIX: Simplify payload to pass Zod validation
 					paymentIntent: {
-						paymentMethod: "card", // <--- ADDED THIS: Required by the App to identify the flow
-						automatic_payment_methods: {
-							enabled: true,
-						},
+						paymentMethod: "card",
 					},
 				},
 			},
@@ -73,7 +69,6 @@ export const StripeComponent = ({ config }: StripeComponentProps) => {
 		[stripeData],
 	);
 
-	// Wait until we have both the Stripe Library loaded AND the Client Secret from the server
 	if (!stripePromise || !stripeData?.paymentIntent?.client_secret) {
 		return null;
 	}
