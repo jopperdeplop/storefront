@@ -100,8 +100,9 @@ export default async function Page(props: { params: Promise<{ slug: string; chan
 							<h2 className="text-xl font-bold">About {name}</h2>
 						</div>
 						<div className="prose prose-sm prose-neutral max-w-none md:col-span-8">
-							{/* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */}
-							{JSON.parse(description).blocks?.map((block: any) => (
+							{/* FIX: Explicitly cast JSON.parse result to 'any' to satisfy TypeScript compiler */}
+							{/* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */}
+							{(JSON.parse(description) as any).blocks?.map((block: any) => (
 								// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 								<p key={block.id as string} className="mb-4 break-inside-avoid">
 									{/* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access */}
