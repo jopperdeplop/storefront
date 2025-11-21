@@ -42,6 +42,14 @@ export default async function Page(props: { params: Promise<{ slug: string; chan
 			<div className="sticky top-0 z-30 border-b border-gray-300 bg-vapor/95 backdrop-blur transition-all">
 				<div className="mx-auto max-w-[1920px] px-4 py-4 md:px-8 md:py-6">
 					<h1 className="text-2xl font-bold uppercase tracking-tighter md:text-4xl">{name}</h1>
+					<div className="scrollbar-hide flex gap-2 overflow-x-auto pb-1">
+						<button className="whitespace-nowrap rounded-sm border border-carbon bg-carbon px-4 py-1 text-xs uppercase text-white">
+							All Items
+						</button>
+						<button className="whitespace-nowrap rounded-sm border border-gray-300 bg-white px-4 py-1 text-xs uppercase text-gray-600 hover:border-cobalt">
+							Best Sellers
+						</button>
+					</div>
 				</div>
 			</div>
 
@@ -100,8 +108,9 @@ export default async function Page(props: { params: Promise<{ slug: string; chan
 							<h2 className="text-xl font-bold">About {name}</h2>
 						</div>
 						<div className="prose prose-sm prose-neutral max-w-none md:col-span-8">
-							{/* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */}
-							{JSON.parse(description).blocks?.map((block: any) => (
+							{/* FIX: Explicitly cast JSON.parse result to 'any' to satisfy TypeScript compiler */}
+							{/* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */}
+							{(JSON.parse(description) as any).blocks?.map((block: any) => (
 								// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 								<p key={block.id as string} className="mb-4">
 									{/* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access */}
