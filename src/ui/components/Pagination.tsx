@@ -1,28 +1,43 @@
-import clsx from "clsx";
-import { LinkWithChannel } from "../atoms/LinkWithChannel";
+import { LinkWithChannel } from "@/ui/atoms/LinkWithChannel";
 
-export async function Pagination({
+export function Pagination({
 	pageInfo,
 }: {
 	pageInfo: {
-		basePathname: string;
 		hasNextPage: boolean;
-		readonly urlSearchParams?: URLSearchParams;
+		hasPreviousPage: boolean;
+		startCursor?: string | null;
+		endCursor?: string | null;
+		basePathname: string;
+		urlSearchParams?: URLSearchParams;
 	};
 }) {
+	// --- NEXT BUTTON LOGIC ---
+	// We only handle forward navigation ('after')
+	const nextSearchParams = new URLSearchParams(pageInfo.urlSearchParams?.toString());
+	if (pageInfo.endCursor) {
+		nextSearchParams.set("after", pageInfo.endCursor);
+		nextSearchParams.delete("before"); // Ensure clean state
+	}
+
 	return (
-		<nav className="flex items-center justify-center gap-x-4 border-neutral-200 px-4 pt-12">
-			<LinkWithChannel
-				href={pageInfo.hasNextPage ? `${pageInfo.basePathname}?${pageInfo.urlSearchParams?.toString()}` : "#"}
-				className={clsx("px-4 py-2 text-sm font-medium ", {
-					"rounded bg-neutral-900 text-neutral-50 hover:bg-neutral-800": pageInfo.hasNextPage,
-					"cursor-not-allowed rounded border text-neutral-400": !pageInfo.hasNextPage,
-					"pointer-events-none": !pageInfo.hasNextPage,
-				})}
-				aria-disabled={!pageInfo.hasNextPage}
-			>
-				Next page
-			</LinkWithChannel>
+		<nav className="flex items-center justify-center border-t border-gray-300 pt-12">
+			{/* --- NEXT BUTTON --- */}
+			{pageInfo.hasNextPage ? (
+				<LinkWithChannel
+					href={`${pageInfo.basePathname}?${nextSearchParams.toString()}`}
+					className="group inline-flex h-12 min-w-[120px] items-center justify-center border border-carbon bg-carbon px-6 text-xs font-bold uppercase tracking-widest text-white transition-all hover:border-cobalt hover:bg-cobalt"
+				>
+					Next →
+				</LinkWithChannel>
+			) : (
+				<div
+					aria-disabled="true"
+					className="inline-flex h-12 min-w-[120px] cursor-not-allowed select-none items-center justify-center border border-gray-100 bg-gray-50 px-6 text-xs font-bold uppercase tracking-widest text-gray-300"
+				>
+					Next →
+				</div>
+			)}
 		</nav>
 	);
 }

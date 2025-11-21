@@ -12,86 +12,84 @@ export async function Footer({ channel }: { channel: string }) {
 	});
 	const channels = process.env.SALEOR_APP_TOKEN
 		? await executeGraphQL(ChannelsListDocument, {
-				withAuth: false, // disable cookie-based auth for this call
+				withAuth: false,
 				headers: {
-					// and use app token instead
 					Authorization: `Bearer ${process.env.SALEOR_APP_TOKEN}`,
 				},
-		  })
+			})
 		: null;
 	const currentYear = new Date().getFullYear();
 
 	return (
-		<footer className="border-neutral-300 bg-neutral-50">
-			<div className="mx-auto max-w-7xl px-4 lg:px-8">
-				<div className="grid grid-cols-3 gap-8 py-16">
-					{footerLinks.menu?.items?.map((item) => {
-						return (
-							<div key={item.id}>
-								<h3 className="text-sm font-semibold text-neutral-900">{item.name}</h3>
-								<ul className="mt-4 space-y-4 [&>li]:text-neutral-500">
-									{item.children?.map((child) => {
-										if (child.category) {
-											return (
-												<li key={child.id} className="text-sm">
-													<LinkWithChannel href={`/categories/${child.category.slug}`}>
-														{child.category.name}
-													</LinkWithChannel>
-												</li>
-											);
-										}
-										if (child.collection) {
-											return (
-												<li key={child.id} className="text-sm">
-													<LinkWithChannel href={`/collections/${child.collection.slug}`}>
-														{child.collection.name}
-													</LinkWithChannel>
-												</li>
-											);
-										}
-										if (child.page) {
-											return (
-												<li key={child.id} className="text-sm">
-													<LinkWithChannel href={`/pages/${child.page.slug}`}>
-														{child.page.title}
-													</LinkWithChannel>
-												</li>
-											);
-										}
-										if (child.url) {
-											return (
-												<li key={child.id} className="text-sm">
-													<LinkWithChannel href={child.url}>{child.name}</LinkWithChannel>
-												</li>
-											);
-										}
-										return null;
-									})}
-								</ul>
-							</div>
-						);
-					})}
+		<footer className="border-t border-gray-300 bg-vapor pb-8 pt-16 text-carbon">
+			<div className="mx-auto max-w-[1920px] px-4 lg:px-8">
+				{/* --- LINKS GRID --- */}
+				<div className="mb-16 grid grid-cols-2 gap-8 md:grid-cols-4">
+					{footerLinks.menu?.items?.map((item) => (
+						<div key={item.id}>
+							<h3 className="mb-6 text-sm font-bold uppercase tracking-wider text-carbon">{item.name}</h3>
+							<ul className="space-y-3">
+								{item.children?.map((child) => {
+									const label =
+										child.category?.name || child.collection?.name || child.page?.title || child.name;
+									// Logic to determine the correct href
+									let href = child.url;
+									if (child.category) href = `/categories/${child.category.slug}`;
+									if (child.collection) href = `/collections/${child.collection.slug}`;
+									if (child.page) href = `/pages/${child.page.slug}`;
+
+									return (
+										<li key={child.id}>
+											<LinkWithChannel
+												href={href || "/"}
+												className="font-mono text-sm uppercase text-gray-500 decoration-cobalt underline-offset-4 transition-colors hover:text-cobalt hover:underline"
+											>
+												{label}
+											</LinkWithChannel>
+										</li>
+									);
+								})}
+							</ul>
+						</div>
+					))}
 				</div>
 
-				{channels?.channels && (
-					<div className="mb-4 text-neutral-500">
-						<label>
-							<span className="text-sm">Change currency:</span> <ChannelSelect channels={channels.channels} />
-						</label>
+				{/* --- BOTTOM BAR --- */}
+				<div className="flex flex-col items-start justify-between gap-6 border-t border-gray-300 pt-8 md:flex-row md:items-center">
+					{/* Brand & Copyright */}
+					<div className="flex flex-col gap-2">
+						<span className="text-xl font-bold uppercase tracking-tighter">
+							Salp<span className="text-cobalt">.</span>
+						</span>
+						<p className="font-mono text-xs uppercase tracking-wide text-gray-400">
+							&copy; {currentYear} Salp Commerce Systems.
+						</p>
 					</div>
-				)}
 
-				<div className="flex flex-col justify-between border-t border-neutral-200 py-10 sm:flex-row">
-					<p className="text-sm text-neutral-500">Copyright &copy; {currentYear} Your Store, Inc.</p>
-					<p className="flex gap-1 text-sm text-neutral-500">
-						Powered by{" "}
-						<Link target={"_blank"} href={"https://saleor.io/"}>
-							Saleor
-						</Link>{" "}
-						<Link href={"https://github.com/saleor/saleor"} target={"_blank"} className={"opacity-30"}>
-							<Image alt="Saleor github repository" height={20} width={20} src={"/github-mark.svg"} />
-						</Link>
-					</p>
+					{/* Currency & Credits */}
+					<div className="flex flex-col gap-4 md:items-end">
+						{channels?.channels && (
+							<div className="text-sm">
+								<span className="mr-2 font-mono uppercase text-gray-400">System Currency:</span>
+								<ChannelSelect channels={channels.channels} />
+							</div>
+						)}
+
+						<p className="flex items-center gap-2 font-mono text-xs uppercase text-gray-400">
+							<span>System Architecture by</span>
+							<Link target="_blank" href="https://saleor.io/" className="transition-colors hover:text-cobalt">
+								Saleor
+							</Link>
+							<span className="text-gray-300">|</span>
+							<Link
+								href="https://github.com/saleor/saleor"
+								target="_blank"
+								className="opacity-50 transition-opacity hover:opacity-100"
+							>
+								<Image alt="GitHub" height={16} width={16} src="/github-mark.svg" />
+							</Link>
+						</p>
+					</div>
 				</div>
 			</div>
 		</footer>
