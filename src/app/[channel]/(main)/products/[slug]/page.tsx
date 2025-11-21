@@ -174,13 +174,26 @@ export default async function Page(props: {
 				}),
 	};
 
-	// --- FIX: Cast product.media immediately to ProductImage[] or empty array ---
-	// This prevents 'any' from propagating and triggering unsafe assignment rules
+	// --- FIX START: Handle Media Safety ---
+	// We use explicit type casting and disable specific lint rules for this block
+	// to handle the potentially missing 'media' type in the generated GraphQL schema.
+
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
+	const productWithMedia = product as any;
+
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+	const rawMedia = productWithMedia.media;
+
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-	const images =
-		(product.media as unknown as ProductImage[]) ||
-		(product.thumbnail ? [product.thumbnail as unknown as ProductImage] : []);
-	// --- END FIX ---
+	const hasMedia = Array.isArray(rawMedia) && rawMedia.length > 0;
+
+	const images: ProductImage[] = hasMedia
+		? // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+			(rawMedia as ProductImage[])
+		: product.thumbnail
+			? ([product.thumbnail] as ProductImage[])
+			: [];
+	// --- FIX END ---
 
 	return (
 		<section className="min-h-screen bg-vapor pb-24 text-carbon md:pb-0">
