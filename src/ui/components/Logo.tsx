@@ -3,22 +3,27 @@
 import { usePathname } from "next/navigation";
 import { LinkWithChannel } from "../atoms/LinkWithChannel";
 
-const companyName = "ACME";
-
 export const Logo = () => {
 	const pathname = usePathname();
 
+	// The "Salp." visual identity
+	const BrandMark = (
+		<span className="select-none text-2xl font-bold uppercase tracking-tighter text-carbon md:text-3xl">
+			Salp<span className="text-cobalt">.</span>
+		</span>
+	);
+
 	if (pathname === "/") {
 		return (
-			<h1 className="flex items-center font-bold" aria-label="homepage">
-				{companyName}
+			<h1 className="flex items-center" aria-label="homepage">
+				{BrandMark}
 			</h1>
 		);
 	}
 	return (
-		<div className="flex items-center font-bold">
+		<div className="flex items-center">
 			<LinkWithChannel aria-label="homepage" href="/">
-				{companyName}
+				{BrandMark}
 			</LinkWithChannel>
 		</div>
 	);
