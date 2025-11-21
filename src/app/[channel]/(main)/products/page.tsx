@@ -93,7 +93,7 @@ export default async function Page(props: {
 						);
 					})}
 
-					{/* --- KNOWLEDGE CARD INJECTION (Kept at bottom as a double-width footer card) --- */}
+					{/* --- KNOWLEDGE CARD INJECTION --- */}
 					<div className="col-span-2 flex aspect-[2/1] flex-col justify-center bg-carbon p-6 text-vapor md:p-8">
 						<span className="mb-2 font-mono text-xs uppercase text-cobalt">Optimization Tip</span>
 						<p className="max-w-md text-lg font-bold leading-tight md:text-2xl">
@@ -106,6 +106,9 @@ export default async function Page(props: {
 					<Pagination
 						pageInfo={{
 							...products.pageInfo,
+							// FIX: Hardcode missing fields to null/false instead of reading them from 'products.pageInfo'
+							hasPreviousPage: false,
+							startCursor: null,
 							basePathname: `/products`,
 							urlSearchParams: newSearchParams,
 						}}
