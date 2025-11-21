@@ -1,4 +1,3 @@
-/*This exists for dropdowns in mobile menu*/
 "use client";
 
 import { useState } from "react";
@@ -15,26 +14,29 @@ type MenuItem = {
 	children?: MenuItem[] | null;
 };
 
-const getLinkPath = (item: MenuItem) => {
-	if (item.category) return `/categories/${item.category.slug}`;
-	if (item.collection) return `/collections/${item.collection.slug}`;
-	if (item.page) return `/pages/${item.page.slug}`;
-	return item.url || "/";
+// FIX: Added channel argument to prepend it to paths
+const getLinkPath = (item: MenuItem, channel: string) => {
+	if (item.category) return `/${channel}/categories/${item.category.slug}`;
+	if (item.collection) return `/${channel}/collections/${item.collection.slug}`;
+	if (item.page) return `/${channel}/pages/${item.page.slug}`;
+	return item.url || `/${channel}`;
 };
 
-export const NavItem = ({ item }: { item: MenuItem }) => {
+// FIX: Added channel to Props
+export const NavItem = ({ item, channel }: { item: MenuItem; channel: string }) => {
 	const [isExpanded, setIsExpanded] = useState(false);
 
 	const hasChildren = item.children && item.children.length > 0;
-	const href = getLinkPath(item);
+	// FIX: Pass channel to getLinkPath
+	const href = getLinkPath(item, channel);
 	const label = item.name || item.category?.name || item.collection?.name || item.page?.title || "";
 
 	return (
-		<li className="w-full border-b border-gray-100 last:border-0">
-			<div className="group flex items-center justify-between py-2">
+		<li className="w-full border-b border-gray-100 last:border-0 lg:w-auto lg:border-none">
+			<div className="group flex items-center justify-between py-2 lg:py-0">
 				<Link
 					href={href}
-					className="text-sm font-bold uppercase tracking-wide text-carbon transition-colors hover:text-cobalt"
+					className="text-sm font-bold uppercase tracking-wide text-carbon transition-colors hover:text-cobalt md:text-base"
 				>
 					{label}
 				</Link>
@@ -45,7 +47,7 @@ export const NavItem = ({ item }: { item: MenuItem }) => {
 							e.preventDefault();
 							setIsExpanded(!isExpanded);
 						}}
-						className="p-2 text-carbon hover:text-cobalt focus:outline-none"
+						className="p-1 text-carbon hover:text-cobalt focus:outline-none lg:ml-2 lg:p-0"
 						aria-label="Toggle sub-menu"
 					>
 						<span className="font-mono text-lg font-bold">{isExpanded ? "[-]" : "[+]"}</span>
@@ -54,9 +56,10 @@ export const NavItem = ({ item }: { item: MenuItem }) => {
 			</div>
 
 			{hasChildren && isExpanded && item.children && (
-				<ul className="animate-in slide-in-from-top-1 fade-in ml-1 flex flex-col gap-2 border-l border-gray-200 bg-vapor/30 pb-3 pl-4 duration-200">
+				<ul className="animate-in slide-in-from-top-1 fade-in ml-1 flex flex-col gap-2 border-l border-gray-200 bg-vapor/30 pb-3 pl-4 duration-200 lg:absolute lg:left-0 lg:top-full lg:w-48 lg:border lg:border-gray-100 lg:bg-white lg:p-4 lg:shadow-xl">
 					{item.children.map((child) => {
-						const childHref = getLinkPath(child);
+						// FIX: Pass channel to child link generation
+						const childHref = getLinkPath(child, channel);
 						const childLabel =
 							child.name || child.category?.name || child.collection?.name || child.page?.title || "";
 
