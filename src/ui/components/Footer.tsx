@@ -84,7 +84,7 @@ export async function Footer({ channel }: { channel: string }) {
 					{/* Brand & Copyright */}
 					<div className="flex flex-col gap-2">
 						<span className="font-serif text-2xl font-bold leading-none text-gray-900">
-							Euro-Standard<span className="text-terracotta">.</span>
+							Salp<span className="text-terracotta">.</span>
 						</span>
 						<p className="font-mono text-xs text-gray-500">&copy; {currentYear} • Quality as a Service.</p>
 					</div>

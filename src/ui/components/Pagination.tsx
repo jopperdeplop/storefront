@@ -1,4 +1,4 @@
-import { LinkWithChannel } from "@/ui/atoms/LinkWithChannel";
+import Link from "next/link";
 
 export function Pagination({
 	pageInfo,
@@ -17,7 +17,7 @@ export function Pagination({
 
 	// For "Next", we want to go 'after' the endCursor
 	if (pageInfo.endCursor) {
-		nextSearchParams.set("cursor", pageInfo.endCursor); // Using 'cursor' to match your page.tsx logic
+		nextSearchParams.set("cursor", pageInfo.endCursor);
 		nextSearchParams.delete("before"); // Ensure we don't have conflicting directions
 	}
 
@@ -34,12 +34,12 @@ export function Pagination({
 		<nav className="flex items-center justify-center gap-4 border-t border-stone-200 pt-12">
 			{/* --- PREVIOUS BUTTON --- */}
 			{pageInfo.hasPreviousPage ? (
-				<LinkWithChannel
+				<Link
 					href={`${pageInfo.basePathname}?${prevSearchParams.toString()}`}
 					className="group inline-flex h-12 min-w-[120px] items-center justify-center border border-gray-900 bg-white px-6 text-xs font-bold uppercase tracking-widest text-gray-900 transition-all hover:border-terracotta hover:text-terracotta"
 				>
 					← Prev
-				</LinkWithChannel>
+				</Link>
 			) : (
 				<div
 					aria-disabled="true"
@@ -51,12 +51,12 @@ export function Pagination({
 
 			{/* --- NEXT BUTTON --- */}
 			{pageInfo.hasNextPage ? (
-				<LinkWithChannel
+				<Link
 					href={`${pageInfo.basePathname}?${nextSearchParams.toString()}`}
 					className="group inline-flex h-12 min-w-[120px] items-center justify-center border border-gray-900 bg-gray-900 px-6 text-xs font-bold uppercase tracking-widest text-white transition-all hover:border-terracotta hover:bg-terracotta"
 				>
 					Next →
-				</LinkWithChannel>
+				</Link>
 			) : (
 				<div
 					aria-disabled="true"
