@@ -34,7 +34,7 @@ export default async function Page(props: { params: Promise<{ channel: string }>
 
 	return (
 		<main className="min-h-screen bg-stone-50 text-gray-900 selection:bg-terracotta selection:text-white">
-			[cite_start]{/* --- PLAN SECTION 6.3: The Hero (Magazine Cover) [cite: 126-131] --- */}
+			{/* --- PLAN SECTION 6.3: The Hero (Magazine Cover) [cite: 126-131] --- */}
 			<section className="relative h-[85vh] w-full overflow-hidden bg-gray-900 text-white">
 				{/* Placeholder for Hero Video/Image */}
 				<div className="absolute inset-0 opacity-60">
@@ -136,7 +136,6 @@ export default async function Page(props: { params: Promise<{ channel: string }>
 					<div className="flex flex-col justify-center px-8 py-12 md:px-24">
 						<span className="mb-2 font-mono text-xs uppercase text-terracotta">Atelier Visit</span>
 						<h2 className="mb-6 font-serif text-4xl md:text-5xl">The Hands of Copenhagen.</h2>
-						{/* FIX: Escaped quotes for linter compliance */}
 						<p className="mb-8 max-w-md text-lg font-light leading-relaxed text-gray-600">
 							&quot;We don&apos;t design for the moment. We design for the century.&quot; <br />
 							<br />
@@ -169,7 +168,6 @@ export default async function Page(props: { params: Promise<{ channel: string }>
 							🇪🇺
 						</div>
 						<h3 className="mb-2 font-serif text-lg font-bold">Verified European</h3>
-						{/* FIX: Escaped quote for linter compliance */}
 						<p className="text-sm text-gray-500">
 							Every item is physically produced within the EU. We audit supply chains so you don&apos;t have
 							to.

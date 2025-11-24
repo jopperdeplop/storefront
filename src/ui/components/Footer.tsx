@@ -21,14 +21,14 @@ export async function Footer({ channel }: { channel: string }) {
 	const currentYear = new Date().getFullYear();
 
 	return (
-		<footer className="border-t border-gray-300 bg-vapor pb-8 pt-16 text-carbon">
+		<footer className="border-t border-gray-200 bg-stone-100 pb-12 pt-20 text-gray-900">
 			<div className="mx-auto max-w-[1920px] px-4 lg:px-8">
 				{/* --- LINKS GRID --- */}
-				<div className="mb-16 grid grid-cols-2 gap-8 md:grid-cols-4">
+				<div className="mb-20 grid grid-cols-2 gap-12 md:grid-cols-4">
 					{footerLinks.menu?.items?.map((item) => (
 						<div key={item.id}>
-							<h3 className="mb-6 text-sm font-bold uppercase tracking-wider text-carbon">{item.name}</h3>
-							<ul className="space-y-3">
+							<h3 className="mb-6 font-serif text-lg font-medium text-gray-900">{item.name}</h3>
+							<ul className="space-y-4">
 								{item.children?.map((child) => {
 									const label =
 										child.category?.name || child.collection?.name || child.page?.title || child.name;
@@ -42,7 +42,7 @@ export async function Footer({ channel }: { channel: string }) {
 										<li key={child.id}>
 											<LinkWithChannel
 												href={href || "/"}
-												className="font-mono text-sm uppercase text-gray-500 decoration-cobalt underline-offset-4 transition-colors hover:text-cobalt hover:underline"
+												className="text-sm text-gray-500 decoration-terracotta underline-offset-4 transition-colors hover:text-terracotta hover:underline"
 											>
 												{label}
 											</LinkWithChannel>
@@ -54,30 +54,57 @@ export async function Footer({ channel }: { channel: string }) {
 					))}
 				</div>
 
+				{/* --- TRUST SIGNALS  --- */}
+				<div className="mb-12 border-b border-gray-200 pb-8">
+					<p className="mb-4 font-mono text-xs uppercase tracking-widest text-gray-400">
+						Verified European Logistics & Payment
+					</p>
+					<div className="flex flex-wrap gap-4 opacity-60 grayscale transition-all hover:opacity-100 hover:grayscale-0">
+						{/* CSS-based Badges to represent logos cleanly without external assets */}
+						<div className="flex h-8 items-center border border-gray-300 bg-white px-3 text-[10px] font-bold tracking-widest text-gray-600">
+							DHL
+						</div>
+						<div className="flex h-8 items-center border border-gray-300 bg-white px-3 text-[10px] font-bold tracking-widest text-gray-600">
+							POSTNL
+						</div>
+						<div className="flex h-8 items-center border border-gray-300 bg-white px-3 text-[10px] font-bold tracking-widest text-[#FFB3C7]">
+							KLARNA
+						</div>
+						<div className="flex h-8 items-center border border-gray-300 bg-white px-3 text-[10px] font-bold tracking-widest text-[#635BFF]">
+							STRIPE
+						</div>
+						<div className="flex h-8 items-center border border-gray-300 bg-white px-3 text-[10px] font-bold tracking-widest text-gray-600">
+							IDEAL
+						</div>
+					</div>
+				</div>
+
 				{/* --- BOTTOM BAR --- */}
-				<div className="flex flex-col items-start justify-between gap-6 border-t border-gray-300 pt-8 md:flex-row md:items-center">
+				<div className="flex flex-col items-start justify-between gap-6 pt-4 md:flex-row md:items-center">
 					{/* Brand & Copyright */}
 					<div className="flex flex-col gap-2">
-						<span className="text-xl font-bold uppercase tracking-tighter">
-							Salp<span className="text-cobalt">.</span>
+						<span className="font-serif text-2xl font-bold leading-none text-gray-900">
+							Euro-Standard<span className="text-terracotta">.</span>
 						</span>
-						<p className="font-mono text-xs uppercase tracking-wide text-gray-400">
-							&copy; {currentYear} Salp Commerce Systems.
-						</p>
+						<p className="font-mono text-xs text-gray-500">&copy; {currentYear} • Quality as a Service.</p>
 					</div>
 
 					{/* Currency & Credits */}
 					<div className="flex flex-col gap-4 md:items-end">
 						{channels?.channels && (
 							<div className="text-sm">
-								<span className="mr-2 font-mono uppercase text-gray-400">System Currency:</span>
+								<span className="mr-2 font-mono text-xs uppercase text-gray-400">Region:</span>
 								<ChannelSelect channels={channels.channels} />
 							</div>
 						)}
 
 						<p className="flex items-center gap-2 font-mono text-xs uppercase text-gray-400">
-							<span>System Architecture by</span>
-							<Link target="_blank" href="https://saleor.io/" className="transition-colors hover:text-cobalt">
+							<span>Powered by</span>
+							<Link
+								target="_blank"
+								href="https://saleor.io/"
+								className="font-bold text-gray-600 hover:text-terracotta"
+							>
 								Saleor
 							</Link>
 							<span className="text-gray-300">|</span>
