@@ -1,25 +1,26 @@
 "use client";
 
-import clsx from "clsx";
-import { type ReactElement } from "react";
+import { type ReactNode } from "react";
+import { usePathname } from "next/navigation";
 import { LinkWithChannel } from "@/ui/atoms/LinkWithChannel";
-import useSelectedPathname from "@/hooks/useSelectedPathname";
 
-export function NavLink({ href, children }: { href: string; children: ReactElement | string }) {
-	const pathname = useSelectedPathname();
+interface NavLinkProps {
+	href: string;
+	children: ReactNode;
+}
+
+export const NavLink = ({ href, children }: NavLinkProps) => {
+	const pathname = usePathname();
 	const isActive = pathname === href;
 
 	return (
-		<li className="inline-flex">
-			<LinkWithChannel
-				href={href}
-				className={clsx(
-					isActive ? "border-neutral-900 text-neutral-900" : "border-transparent text-neutral-500",
-					"inline-flex items-center border-b-2 pt-px text-sm font-medium hover:text-neutral-700",
-				)}
-			>
-				{children}
-			</LinkWithChannel>
-		</li>
+		<LinkWithChannel
+			href={href}
+			className={`text-sm font-medium uppercase tracking-wider transition-colors hover:text-terracotta ${
+				isActive ? "border-b-2 border-terracotta text-terracotta" : "text-gray-900"
+			}`}
+		>
+			{children}
+		</LinkWithChannel>
 	);
-}
+};
