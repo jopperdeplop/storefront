@@ -5,6 +5,22 @@ import Image from "next/image";
 import { ProductListByCollectionDocument } from "@/gql/graphql";
 import { executeGraphQL } from "@/lib/graphql";
 
+// --- FIX: Strict Types for EditorJS Content ---
+interface EditorJsBlock {
+	id: string;
+	type: string;
+	data: {
+		text: string;
+	};
+}
+
+interface EditorJsContent {
+	time: number;
+	blocks: EditorJsBlock[];
+	version: string;
+}
+// ----------------------------------------------
+
 export const generateMetadata = async (
 	props: { params: Promise<{ slug: string; channel: string }> },
 	_parent: ResolvingMetadata,
@@ -15,7 +31,7 @@ export const generateMetadata = async (
 		revalidate: 60,
 	});
 	return {
-		title: `${collection?.name || "Collection"} | Salp`,
+		title: `${collection?.name || "Collection"} | Euro-Standard`,
 		description: collection?.seoDescription || collection?.description,
 	};
 };
@@ -36,82 +52,124 @@ export default async function Page(props: { params: Promise<{ slug: string; chan
 
 	const { name, products, description } = collection;
 
+	// --- FIX: Safe JSON Parsing with Type Guard ---
+	let parsedContent: EditorJsContent | null = null;
+	if (description) {
+		try {
+			const parsed = JSON.parse(description) ;
+			// Basic validation to ensure it matches the interface
+			if (typeof parsed === "object" && parsed !== null && "blocks" in parsed) {
+				parsedContent = parsed as EditorJsContent;
+			}
+		} catch (e) {
+			console.error("Failed to parse collection description", e);
+		}
+	}
+
 	return (
-		<div className="min-h-screen bg-vapor text-carbon">
-			{/* --- HEADER --- */}
-			<div className="sticky top-0 z-30 border-b border-gray-300 bg-vapor/95 backdrop-blur transition-all">
-				<div className="mx-auto max-w-[1920px] px-4 py-4 md:px-8 md:py-6">
-					<h1 className="text-2xl font-bold uppercase tracking-tighter md:text-4xl">{name}</h1>
+		<div className="min-h-screen bg-stone-50 text-gray-900">
+			{/* --- HEADER: Editorial Style [cite: 117-118] --- */}
+			<div className="sticky top-0 z-30 border-b border-stone-200 bg-white/95 backdrop-blur transition-all">
+				<div className="mx-auto max-w-[1920px] px-4 py-6 md:px-8 md:py-8">
+					<span className="mb-2 block font-mono text-xs uppercase tracking-widest text-gray-400">
+						The Edit
+					</span>
+					<h1 className="font-serif text-3xl font-medium text-gray-900 md:text-5xl">{name}</h1>
 				</div>
 			</div>
 
 			<div className="mx-auto max-w-[1920px] px-4 pb-16 pt-8 md:px-8">
-				{/* --- PRODUCT GRID --- */}
-				<div className="grid grid-cols-2 gap-px border border-gray-200 bg-gray-200 md:grid-cols-[repeat(auto-fill,minmax(300px,1fr))]">
-					{products.edges.map(({ node: product }) => (
-						<Link
-							key={product.id}
-							href={`/${params.channel}/products/${product.slug}`}
-							className="group relative col-span-1 aspect-[3/4] bg-white transition-all duration-300 hover:z-10 focus:z-10"
-						>
-							<div className="relative h-full w-full overflow-hidden">
-								{product.thumbnail && (
-									<Image
-										src={product.thumbnail.url}
-										alt={product.thumbnail.alt || product.name}
-										fill
-										className="object-cover transition-transform duration-500 group-hover:scale-105"
-										sizes="(max-width: 768px) 50vw, 25vw"
-									/>
-								)}
-
-								<div className="absolute inset-0 bg-carbon/0 transition-colors duration-300 group-hover:bg-carbon/5" />
-
-								<div className="absolute bottom-0 left-0 right-0 translate-y-0 transform border-t border-gray-100 bg-white p-4 transition-transform">
-									<div className="flex items-start justify-between">
-										<div>
-											<h3 className="text-sm font-bold uppercase tracking-wide text-carbon transition-colors group-hover:text-cobalt">
-												{product.name}
-											</h3>
-											<p className="mt-1 hidden font-mono text-xs text-gray-400 group-hover:block">
-												Category: {product.category?.name || "General"}
-											</p>
-										</div>
-										<span className="rounded-sm bg-gray-100 px-2 py-1 font-mono text-sm transition-colors group-hover:bg-cobalt group-hover:text-white">
-											{formatPrice(
-												product.pricing?.priceRange?.start?.gross.amount || 0,
-												product.pricing?.priceRange?.start?.gross.currency || "EUR",
-											)}
-										</span>
-									</div>
-								</div>
+				<div className="flex flex-col gap-8 lg:flex-row">
+					{/* --- SIDEBAR: Minimalist Filter [cite: 125] --- */}
+					<aside className="hidden w-64 shrink-0 lg:block">
+						<div className="sticky top-32 flex flex-col gap-8">
+							<div>
+								<h3 className="mb-3 font-serif text-sm font-bold uppercase tracking-wide">Category</h3>
+								<ul className="space-y-2 font-mono text-xs text-gray-500">
+									<li className="cursor-pointer hover:text-terracotta hover:underline">All Items</li>
+									<li className="cursor-pointer hover:text-terracotta hover:underline">Furniture</li>
+									<li className="cursor-pointer hover:text-terracotta hover:underline">Lighting</li>
+									<li className="cursor-pointer hover:text-terracotta hover:underline">Tableware</li>
+								</ul>
 							</div>
-						</Link>
-					))}
-				</div>
-
-				{/* --- SEO FOOTER --- */}
-				{description && (
-					<div className="mt-16 grid gap-8 border-t border-gray-300 pt-12 md:grid-cols-12">
-						<div className="md:col-span-4">
-							<span className="mb-2 block font-mono text-xs uppercase tracking-widest text-cobalt">
-								Collection Intelligence
-							</span>
-							<h2 className="text-xl font-bold">About {name}</h2>
+							<div>
+								<h3 className="mb-3 font-serif text-sm font-bold uppercase tracking-wide">Origin</h3>
+								<ul className="space-y-2 font-mono text-xs text-gray-500">
+									<li className="cursor-pointer hover:text-terracotta hover:underline">Portugal</li>
+									<li className="cursor-pointer hover:text-terracotta hover:underline">Poland</li>
+									<li className="cursor-pointer hover:text-terracotta hover:underline">Denmark</li>
+								</ul>
+							</div>
 						</div>
-						<div className="prose prose-sm prose-neutral max-w-none md:col-span-8">
-							{/* FIX: Explicitly cast JSON.parse result to 'any' to satisfy TypeScript compiler */}
-							{/* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */}
-							{(JSON.parse(description) as any).blocks?.map((block: any) => (
-								// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-								<p key={block.id as string} className="mb-4 break-inside-avoid">
-									{/* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access */}
-									{block.data.text as string}
-								</p>
+					</aside>
+
+					{/* --- MAIN CONTENT --- */}
+					<div className="flex-1">
+						{/* --- PRODUCT GRID (Standard Editorial Grid) --- */}
+						<div className="grid grid-cols-2 gap-px border border-gray-200 bg-gray-200 sm:grid-cols-3 xl:grid-cols-4">
+							{products.edges.map(({ node: product }) => (
+								<Link
+									key={product.id}
+									href={`/${params.channel}/products/${product.slug}`}
+									className="group relative aspect-[3/4] bg-white transition-all duration-300 hover:z-10 focus:z-10"
+								>
+									<div className="relative h-full w-full overflow-hidden">
+										{product.thumbnail && (
+											<Image
+												src={product.thumbnail.url}
+												alt={product.thumbnail.alt || product.name}
+												fill
+												className="object-cover transition-transform duration-700 group-hover:scale-105"
+												sizes="(max-width: 768px) 50vw, 25vw"
+											/>
+										)}
+
+										{/* Hover Overlay */}
+										<div className="absolute inset-0 flex flex-col justify-end bg-black/0 p-4 transition-colors duration-300 group-hover:bg-black/5" />
+
+										{/* Product Info */}
+										<div className="absolute bottom-0 left-0 right-0 border-t border-stone-100 bg-white p-4">
+											<div className="flex flex-col gap-1">
+												<h3 className="truncate font-serif text-base font-medium text-gray-900 group-hover:text-terracotta">
+													{product.name}
+												</h3>
+												<div className="flex items-center justify-between">
+													<span className="font-mono text-xs text-gray-400">
+														{product.category?.name || "Object"}
+													</span>
+													<span className="font-mono text-sm text-gray-900">
+														{formatPrice(
+															product.pricing?.priceRange?.start?.gross.amount || 0,
+															product.pricing?.priceRange?.start?.gross.currency || "EUR",
+														)}
+													</span>
+												</div>
+											</div>
+										</div>
+									</div>
+								</Link>
 							))}
 						</div>
+
+						{/* --- SEO / Buying Guide Footer [cite: 21-23] --- */}
+						{parsedContent && (
+							<div className="mt-16 border-t border-gray-200 pt-12">
+								<span className="mb-4 block font-mono text-xs uppercase tracking-widest text-terracotta">
+									Buying Guide
+								</span>
+								<h2 className="mb-6 font-serif text-2xl font-medium text-gray-900">About {name}</h2>
+								<div className="prose prose-sm prose-neutral max-w-none prose-headings:font-serif prose-a:text-terracotta">
+									{/* FIX: Map over strictly typed blocks */}
+									{parsedContent.blocks.map((block) => (
+										<p key={block.id} className="mb-4 break-inside-avoid leading-relaxed text-gray-600">
+											{block.data.text}
+										</p>
+									))}
+								</div>
+							</div>
+						)}
 					</div>
-				)}
+				</div>
 			</div>
 		</div>
 	);
