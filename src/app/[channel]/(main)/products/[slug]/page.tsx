@@ -12,7 +12,7 @@ import { executeGraphQL } from "@/lib/graphql";
 import { formatMoney, formatMoneyRange } from "@/lib/utils";
 import { CheckoutAddLineDocument, ProductDetailsDocument, ProductListDocument } from "@/gql/graphql";
 import * as Checkout from "@/lib/checkout";
-import { AvailabilityMessage } from "@/ui/components/AvailabilityMessage";
+// REMOVED: Unused AvailabilityMessage import to fix lint error
 
 // Interface to fix "Unsafe member access" lint errors on images
 interface ProductImage {
@@ -98,9 +98,7 @@ export default async function Page(props: {
 
 	// Safe parsing for description with suppression for external parser types
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
-	const description = product?.description
-		? (parser.parse(JSON.parse(product?.description)) )
-		: null;
+	const description = product?.description ? parser.parse(JSON.parse(product?.description)) : null;
 	const variants = product.variants;
 	const selectedVariantID = searchParams.variant;
 	const selectedVariant = variants?.find(({ id }) => id === selectedVariantID);
@@ -175,9 +173,6 @@ export default async function Page(props: {
 	};
 
 	// --- FIX START: Handle Media Safety ---
-	// We use explicit type casting and disable specific lint rules for this block
-	// to handle the potentially missing 'media' type in the generated GraphQL schema.
-
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
 	const productWithMedia = product as any;
 
@@ -196,7 +191,7 @@ export default async function Page(props: {
 	// --- FIX END ---
 
 	return (
-		<section className="min-h-screen bg-vapor pb-24 text-carbon md:pb-0">
+		<section className="min-h-screen bg-stone-50 pb-24 text-gray-900 selection:bg-terracotta selection:text-white md:pb-0">
 			<script
 				type="application/ld+json"
 				dangerouslySetInnerHTML={{
@@ -205,85 +200,117 @@ export default async function Page(props: {
 			/>
 
 			<form action={addItem} className="h-full">
-				{/* --- SPLIT SCREEN LAYOUT --- */}
-				<div className="md:flex md:items-start">
-					{/* --- LEFT COLUMN: Images --- */}
-					<div className="w-full border-r border-gray-200 bg-white md:w-1/2">
+				{/* --- PLAN SECTION 6.1: Context-Aware Layout (Split Screen) --- */}
+				<div className="mx-auto max-w-[1920px] md:grid md:min-h-screen md:grid-cols-12 md:gap-0">
+					{/* --- LEFT: The Visual & Story (60%) --- */}
+					<div className="border-r border-gray-200 bg-white md:col-span-7 lg:col-span-8">
+						{/* Carousel / Image Stack */}
 						<div className="flex flex-col">
 							{images.map((img, idx) => (
 								<div
 									key={idx}
-									className="relative aspect-square w-full border-b border-gray-100 md:aspect-[4/5]"
+									className="relative aspect-square w-full border-b border-gray-100 last:border-0 md:aspect-auto md:h-[90vh]"
 								>
 									<Image
 										src={img.url}
 										alt={img.alt || product.name}
 										fill
 										className="object-cover"
-										sizes="(max-width: 768px) 100vw, 50vw"
+										sizes="(max-width: 768px) 100vw, 60vw"
 										priority={idx === 0}
 									/>
 								</div>
 							))}
 						</div>
 
-						{/* Mobile Only: Description appears under images on phones */}
-						<div className="px-6 py-8 md:hidden">
-							<h2 className="mb-4 font-mono text-xs uppercase text-gray-400">Specs & Details</h2>
+						{/* --- PLAN SECTION 6.1: The "Deep Dive" (Below Fold) --- */}
+						<div className="max-w-4xl px-6 py-16 md:px-20 md:py-24">
+							<span className="mb-4 block font-mono text-xs uppercase tracking-widest text-terracotta">
+								The Origin Story
+							</span>
+							<h2 className="mb-8 font-serif text-3xl text-gray-900 md:text-4xl">Material Standard.</h2>
+
 							{description && (
-								<div className="prose prose-sm prose-neutral max-w-none">
+								<div className="prose prose-lg prose-neutral max-w-none prose-headings:font-serif prose-a:text-terracotta">
 									{description.map((content) => (
 										<div key={content} dangerouslySetInnerHTML={{ __html: xss(content) }} />
 									))}
 								</div>
+							)}
+
+							{/* Static "Material Standard" reinforcement if no description exists */}
+							{!description && (
+								<p className="text-lg leading-relaxed text-gray-600">
+									This product adheres to the Euro-Standard certification for authentic craftsmanship. Created
+									in verified European workshops using locally sourced materials.
+								</p>
 							)}
 						</div>
 					</div>
 
-					{/* --- RIGHT COLUMN: Sidebar --- */}
-					<div className="flex w-full flex-col bg-vapor px-6 py-8 md:sticky md:top-0 md:w-1/2 md:px-12 md:py-12">
-						<div className="flex items-start justify-between border-b border-gray-300 pb-6">
-							<h1 className="max-w-md text-2xl font-bold uppercase leading-none tracking-tight md:text-4xl">
-								{product.name}
-							</h1>
-							<span
-								className="rounded bg-cobalt/5 px-2 py-1 font-mono text-lg text-cobalt"
-								data-testid="ProductElement_Price"
-							>
-								{price}
-							</span>
-						</div>
-
-						{variants && (
-							<div className="pt-6">
-								<VariantSelector
-									selectedVariant={selectedVariant}
-									variants={variants}
-									product={product}
-									channel={params.channel}
-								/>
-							</div>
-						)}
-
-						<div className="pt-4">
-							<AvailabilityMessage isAvailable={isAvailable} />
-						</div>
-
-						{/* Desktop Description */}
-						<div className="hidden pb-8 pt-6 md:block">
-							<h3 className="mb-4 font-mono text-xs uppercase text-gray-400">System Specs</h3>
-							{description && (
-								<div className="prose prose-neutral max-w-md prose-p:text-sm prose-p:leading-relaxed">
-									{description.map((content) => (
-										<div key={content} dangerouslySetInnerHTML={{ __html: xss(content) }} />
-									))}
+					{/* --- RIGHT: Purchase & Context Rail (40% - Sticky) --- */}
+					<div className="relative bg-stone-50 md:col-span-5 lg:col-span-4">
+						<div className="flex flex-col justify-between px-6 py-8 md:sticky md:top-0 md:h-screen md:overflow-y-auto md:px-12 md:py-16">
+							{/* Top Element: Brand Context */}
+							<div className="mb-8">
+								<div className="mb-6 flex items-center gap-3">
+									<div className="h-8 w-8 rounded-full bg-gray-200"></div> {/* Logo Placeholder */}
+									<span className="font-mono text-xs uppercase tracking-wide text-gray-500">
+										Established 2025 • Europe
+									</span>
 								</div>
-							)}
-						</div>
 
-						{/* Add Button */}
-						<div className="hidden w-full md:block">
-							<AddButton disabled={!selectedVariantID || !selectedVariant?.quantityAvailable} />
+								<h1 className="mb-2 font-serif text-4xl font-medium leading-tight text-gray-900 md:text-5xl">
+									{product.name}
+								</h1>
+								<p className="font-mono text-sm text-gray-500">
+									{product.category?.name || "Utility Object"}
+								</p>
+							</div>
+
+							{/* Middle: Price & Selectors */}
+							<div className="mb-auto">
+								<div className="mb-8 flex items-baseline gap-4 border-b border-gray-200 pb-8">
+									<span className="text-2xl font-medium text-gray-900">{price}</span>
+									{/* Custom Availability Indicator (Replaces AvailabilityMessage) */}
+									{isAvailable && (
+										<span className="flex items-center gap-2 font-mono text-xs text-emerald-600">
+											<span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
+											In Stock
+										</span>
+									)}
+								</div>
+								{variants && (
+									<div className="mb-8">
+										<VariantSelector
+											selectedVariant={selectedVariant}
+											variants={variants}
+											product={product}
+											channel={params.channel}
+										/>
+									</div>
+								)}
+								[cite_start]{/* Trust Badge [cite: 104-106] */}
+								<div className="mb-8 rounded border border-gray-200 bg-white p-4">
+									<ul className="space-y-2 text-xs">
+										<li className="flex items-center gap-2">
+											<span className="text-terracotta">✓</span> Official Brand Partner
+										</li>
+										<li className="flex items-center gap-2">
+											<span className="text-terracotta">✓</span> Direct Shipping from Workshop
+										</li>
+									</ul>
+								</div>
+								{/* Desktop Add Button - Styled for Terracotta */}
+								<div className="hidden md:block [&>button]:h-14 [&>button]:w-full [&>button]:bg-terracotta [&>button]:font-bold [&>button]:uppercase [&>button]:tracking-widest [&>button]:text-white [&>button]:transition-all [&>button]:hover:bg-terracotta-dark">
+									<AddButton disabled={!selectedVariantID || !selectedVariant?.quantityAvailable} />
+								</div>
+								<div className="mt-4 hidden text-center md:block">
+									<span className="font-mono text-[10px] uppercase text-gray-400">
+										Secure Transaction • 14-Day Returns
+									</span>
+								</div>
+							</div>
 						</div>
 					</div>
 				</div>
@@ -293,10 +320,10 @@ export default async function Page(props: {
 					<div className="flex items-center gap-4">
 						<div className="flex flex-shrink-0 flex-col">
 							<span className="font-mono text-[10px] uppercase text-gray-500">Total</span>
-							<span className="font-bold text-carbon">{price}</span>
+							<span className="font-bold text-gray-900">{price}</span>
 						</div>
 						<div className="flex-grow">
-							<div className="[&>button]:h-12 [&>button]:w-full [&>button]:rounded-none [&>button]:bg-cobalt [&>button]:font-bold [&>button]:uppercase [&>button]:tracking-wide [&>button]:text-white">
+							<div className="[&>button]:h-12 [&>button]:w-full [&>button]:rounded-none [&>button]:bg-terracotta [&>button]:font-bold [&>button]:uppercase [&>button]:tracking-wide [&>button]:text-white">
 								<AddButton disabled={!selectedVariantID || !selectedVariant?.quantityAvailable} />
 							</div>
 						</div>
