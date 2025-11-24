@@ -290,7 +290,7 @@ export default async function Page(props: {
 										/>
 									</div>
 								)}
-								[cite_start]{/* Trust Badge: Cleaned to remove artifacts [cite: 104-106] */}
+								{/* Trust Badge: Cleaned to remove artifacts [cite: 104-106] */}
 								<div className="mb-8 rounded border border-gray-200 bg-white p-4">
 									<ul className="space-y-2 text-xs">
 										<li className="flex items-center gap-2">
