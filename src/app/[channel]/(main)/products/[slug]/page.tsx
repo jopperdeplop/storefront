@@ -205,13 +205,17 @@ export default async function Page(props: {
 							{images.map((img, idx) => (
 								<div
 									key={idx}
-									className="relative aspect-square w-full border-b border-gray-100 last:border-0 md:aspect-auto md:h-[90vh]"
+									// UPDATED: Fixed height relative to viewport (85vh) to ensure it fits above the fold.
+									// On mobile, we keep a generous square/rect height.
+									className="relative flex h-[50vh] w-full items-center justify-center border-b border-gray-100 last:border-0 md:h-[85vh]"
 								>
 									<Image
 										src={img.url}
 										alt={img.alt || product.name}
 										fill
-										className="object-cover"
+										// UPDATED: 'object-contain' ensures the WHOLE product is seen without cropping
+										// Added padding (p-8) so it breathes and doesn't touch the edges.
+										className="object-contain p-8"
 										sizes="(max-width: 768px) 100vw, 60vw"
 										priority={idx === 0}
 									/>
@@ -276,7 +280,6 @@ export default async function Page(props: {
 										</span>
 									)}
 								</div>
-
 								{variants && (
 									<div className="mb-8">
 										<VariantSelector
@@ -287,8 +290,7 @@ export default async function Page(props: {
 										/>
 									</div>
 								)}
-
-								{/* Trust Badge: Cleaned to remove artifacts [cite: 104-106] */}
+								[cite_start]{/* Trust Badge: Cleaned to remove artifacts [cite: 104-106] */}
 								<div className="mb-8 rounded border border-gray-200 bg-white p-4">
 									<ul className="space-y-2 text-xs">
 										<li className="flex items-center gap-2">
@@ -299,7 +301,6 @@ export default async function Page(props: {
 										</li>
 									</ul>
 								</div>
-
 								{/* Desktop Add Button - Styled for Terracotta */}
 								<div className="hidden md:block [&>button]:h-14 [&>button]:w-full [&>button]:bg-terracotta [&>button]:font-bold [&>button]:uppercase [&>button]:tracking-widest [&>button]:text-white [&>button]:transition-all [&>button]:hover:bg-terracotta-dark">
 									<AddButton disabled={!selectedVariantID || !selectedVariant?.quantityAvailable} />
