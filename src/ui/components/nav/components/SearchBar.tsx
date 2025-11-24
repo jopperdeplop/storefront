@@ -20,16 +20,17 @@ export const SearchBar = ({ channel }: { channel: string }) => {
 				<input
 					type="text"
 					name="search"
-					placeholder="Search makers & brands..."
+					placeholder="Search products & brands..."
 					autoComplete="on"
 					required
-					className="h-10 w-full rounded-none border border-stone-200 bg-stone-50 px-4 py-2 pr-10 font-sans text-sm text-gray-900 placeholder:text-gray-400 focus:border-terracotta focus:bg-white focus:outline-none focus:ring-1 focus:ring-terracotta"
+					// UPDATED: Added 'border-stone-200' instead of transparent for subtle definition
+					className="h-10 w-full rounded-full border border-stone-200 bg-stone-100 px-6 py-2 pr-10 font-sans text-sm text-gray-900 transition-all placeholder:text-gray-400 hover:border-stone-300 hover:bg-stone-200 focus:border-terracotta focus:bg-white focus:outline-none focus:ring-1 focus:ring-terracotta"
 				/>
 			</label>
-			<div className="absolute inset-y-0 right-0">
+			<div className="absolute inset-y-0 right-0 flex items-center pr-3">
 				<button
 					type="submit"
-					className="inline-flex aspect-square w-10 items-center justify-center text-gray-400 transition-colors hover:text-terracotta group-invalid:pointer-events-none group-invalid:opacity-50"
+					className="inline-flex aspect-square h-8 w-8 items-center justify-center rounded-full text-gray-400 transition-colors hover:text-terracotta group-invalid:pointer-events-none group-invalid:opacity-50"
 				>
 					<span className="sr-only">search</span>
 					<SearchIcon aria-hidden className="h-4 w-4" />
