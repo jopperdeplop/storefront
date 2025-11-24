@@ -19,9 +19,10 @@ export const MobileMenu = ({ children }: Props) => {
 			<OpenButton onClick={openMenu} aria-controls="mobile-menu" />
 			<Transition show={isOpen}>
 				<Dialog onClose={closeMenu}>
-					<Dialog.Panel className="fixed inset-0 z-50 flex h-dvh w-screen flex-col overflow-y-scroll bg-vapor text-carbon">
+					{/* Panel: Updated to Stone/White palette for Editorial feel */}
+					<Dialog.Panel className="fixed inset-0 z-50 flex h-dvh w-screen flex-col overflow-y-scroll bg-stone-50 text-gray-900">
 						<Transition.Child
-							className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b border-gray-300 bg-vapor/95 px-4 backdrop-blur-md sm:px-8"
+							className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b border-stone-200 bg-white/95 px-4 backdrop-blur-md sm:px-8"
 							enter="motion-safe:transition-all motion-safe:duration-150"
 							enterFrom="opacity-0"
 							enterTo="opacity-100"
@@ -45,9 +46,8 @@ export const MobileMenu = ({ children }: Props) => {
 							leaveTo="opacity-0 translate-y-2"
 						>
 							<ul
-								// CHANGED HERE: [&>li]:py-0
-								// This removes the extra vertical gap between list items.
-								className="flex h-full flex-col divide-y divide-gray-200 whitespace-nowrap p-4 pt-0 font-medium uppercase tracking-wide sm:p-8 sm:pt-0 [&>li]:py-0"
+								// UPDATED: Dividers to Stone-200 to match theme. Kept py-0 to let children control spacing.
+								className="flex h-full flex-col divide-y divide-stone-200 whitespace-nowrap p-4 pt-0 font-medium uppercase tracking-wide sm:p-8 sm:pt-0 [&>li]:py-0"
 								id="mobile-menu"
 							>
 								{children}

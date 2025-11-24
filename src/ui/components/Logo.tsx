@@ -6,10 +6,10 @@ import { LinkWithChannel } from "../atoms/LinkWithChannel";
 export const Logo = () => {
 	const pathname = usePathname();
 
-	// The "Salp." visual identity
+	// The "Euro-Standard" visual identity (Editorial/Magazine style)
 	const BrandMark = (
-		<span className="select-none text-2xl font-bold uppercase tracking-tighter text-carbon md:text-3xl">
-			Salp<span className="text-cobalt">.</span>
+		<span className="select-none font-serif text-2xl font-bold tracking-tight text-gray-900 md:text-3xl">
+			Salp<span className="text-terracotta">.</span>
 		</span>
 	);
 

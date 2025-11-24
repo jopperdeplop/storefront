@@ -11,12 +11,12 @@ export const MobileNavLinks = async ({ channel }: { channel: string }) => {
 
 	return (
 		<>
-			{/* FIX: Added /${channel} to the path */}
-			<div className="w-full border-b border-gray-100 py-2 lg:border-none lg:py-0">
-				<NavLink href={`/${channel}/products`}>ALL ITEMS</NavLink>
+			{/* Static "All Items" Link - Styled with Stone palette */}
+			<div className="w-full border-b border-stone-200 py-3 lg:border-none lg:py-0">
+				<NavLink href={`/${channel}/products`}>All Items</NavLink>
 			</div>
 
-			{/* FIX: Passed channel prop to NavItem */}
+			{/* Dynamic Menu Items - Passing channel prop down for correct routing */}
 			{navLinks.menu?.items?.map((item) => <NavItem key={item.id} item={item} channel={channel} />)}
 		</>
 	);
