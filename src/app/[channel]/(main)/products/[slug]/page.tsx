@@ -12,7 +12,6 @@ import { executeGraphQL } from "@/lib/graphql";
 import { formatMoney, formatMoneyRange } from "@/lib/utils";
 import { CheckoutAddLineDocument, ProductDetailsDocument, ProductListDocument } from "@/gql/graphql";
 import * as Checkout from "@/lib/checkout";
-// REMOVED: Unused AvailabilityMessage import to fix lint error
 
 // Interface to fix "Unsafe member access" lint errors on images
 interface ProductImage {
@@ -172,13 +171,11 @@ export default async function Page(props: {
 				}),
 	};
 
-	// --- FIX START: Handle Media Safety ---
+	// --- FIX: Handle Media Safety ---
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
 	const productWithMedia = product as any;
-
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
 	const rawMedia = productWithMedia.media;
-
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 	const hasMedia = Array.isArray(rawMedia) && rawMedia.length > 0;
 
@@ -188,7 +185,6 @@ export default async function Page(props: {
 		: product.thumbnail
 			? ([product.thumbnail] as ProductImage[])
 			: [];
-	// --- FIX END ---
 
 	return (
 		<section className="min-h-screen bg-stone-50 pb-24 text-gray-900 selection:bg-terracotta selection:text-white md:pb-0">
@@ -272,7 +268,7 @@ export default async function Page(props: {
 							<div className="mb-auto">
 								<div className="mb-8 flex items-baseline gap-4 border-b border-gray-200 pb-8">
 									<span className="text-2xl font-medium text-gray-900">{price}</span>
-									{/* Custom Availability Indicator (Replaces AvailabilityMessage) */}
+									{/* Custom Availability Indicator */}
 									{isAvailable && (
 										<span className="flex items-center gap-2 font-mono text-xs text-emerald-600">
 											<span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
@@ -280,6 +276,7 @@ export default async function Page(props: {
 										</span>
 									)}
 								</div>
+
 								{variants && (
 									<div className="mb-8">
 										<VariantSelector
@@ -290,7 +287,8 @@ export default async function Page(props: {
 										/>
 									</div>
 								)}
-								[cite_start]{/* Trust Badge [cite: 104-106] */}
+
+								{/* Trust Badge: Cleaned to remove artifacts [cite: 104-106] */}
 								<div className="mb-8 rounded border border-gray-200 bg-white p-4">
 									<ul className="space-y-2 text-xs">
 										<li className="flex items-center gap-2">
@@ -301,6 +299,7 @@ export default async function Page(props: {
 										</li>
 									</ul>
 								</div>
+
 								{/* Desktop Add Button - Styled for Terracotta */}
 								<div className="hidden md:block [&>button]:h-14 [&>button]:w-full [&>button]:bg-terracotta [&>button]:font-bold [&>button]:uppercase [&>button]:tracking-widest [&>button]:text-white [&>button]:transition-all [&>button]:hover:bg-terracotta-dark">
 									<AddButton disabled={!selectedVariantID || !selectedVariant?.quantityAvailable} />
