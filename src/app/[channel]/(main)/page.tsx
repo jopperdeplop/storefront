@@ -120,7 +120,6 @@ export default async function Page(props: { params: Promise<{ channel: string }>
 					))}
 				</div>
 			</section>
-			[cite_start]
 			{/* --- PLAN SECTION 6.3: The "Spotlight" Block (Editorial Interruption) [cite: 134-136] --- */}
 			<section className="bg-stone-100 py-20">
 				<div className="mx-auto grid max-w-[1920px] grid-cols-1 md:grid-cols-2">
@@ -148,7 +147,7 @@ export default async function Page(props: { params: Promise<{ channel: string }>
 					</div>
 				</div>
 			</section>
-			[cite_start]{/* --- PLAN SECTION 6.3: The "Education" Block [cite: 138-142] --- */}
+			{/* --- PLAN SECTION 6.3: The "Education" Block [cite: 138-142] --- */}
 			<section className="border-b border-gray-200 bg-white py-16">
 				<div className="mx-auto grid max-w-6xl grid-cols-1 gap-12 px-8 text-center md:grid-cols-3">
 					{/* Column 1: Direct from Source */}

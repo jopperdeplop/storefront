@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { type ResolvingMetadata, type Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { ProductListByCollectionDocument } from "@/gql/graphql";
+import { ProductListByCategoryDocument } from "@/gql/graphql";
 import { executeGraphQL } from "@/lib/graphql";
 
 // --- FIX: Strict Types for EditorJS Content ---
@@ -26,13 +26,13 @@ export const generateMetadata = async (
 	_parent: ResolvingMetadata,
 ): Promise<Metadata> => {
 	const params = await props.params;
-	const { collection } = await executeGraphQL(ProductListByCollectionDocument, {
+	const { category } = await executeGraphQL(ProductListByCategoryDocument, {
 		variables: { slug: params.slug, channel: params.channel },
 		revalidate: 60,
 	});
 	return {
-		title: `${collection?.name || "Collection"} | Euro-Standard`,
-		description: collection?.seoDescription || collection?.description,
+		title: `${category?.name || "Category"} | Euro-Standard`,
+		description: category?.seoDescription || category?.description,
 	};
 };
 
@@ -41,16 +41,16 @@ const formatPrice = (amount: number, currency: string) =>
 
 export default async function Page(props: { params: Promise<{ slug: string; channel: string }> }) {
 	const params = await props.params;
-	const { collection } = await executeGraphQL(ProductListByCollectionDocument, {
+	const { category } = await executeGraphQL(ProductListByCategoryDocument, {
 		variables: { slug: params.slug, channel: params.channel },
 		revalidate: 60,
 	});
 
-	if (!collection || !collection.products) {
+	if (!category || !category.products) {
 		notFound();
 	}
 
-	const { name, products, description } = collection;
+	const { name, products, description } = category;
 
 	// --- FIX: Safe JSON Parsing with Type Guard ---
 	let parsedContent: EditorJsContent | null = null;
@@ -62,17 +62,17 @@ export default async function Page(props: { params: Promise<{ slug: string; chan
 				parsedContent = parsed as EditorJsContent;
 			}
 		} catch (e) {
-			console.error("Failed to parse collection description", e);
+			console.error("Failed to parse category description", e);
 		}
 	}
 
 	return (
 		<div className="min-h-screen bg-stone-50 text-gray-900">
-			{/* --- HEADER: Editorial Style [cite: 117-118] --- */}
+			{/* --- HEADER: Editorial Style --- */}
 			<div className="sticky top-0 z-30 border-b border-stone-200 bg-white/95 backdrop-blur transition-all">
 				<div className="mx-auto max-w-[1920px] px-4 py-6 md:px-8 md:py-8">
 					<span className="mb-2 block font-mono text-xs uppercase tracking-widest text-gray-400">
-						The Edit
+						Category
 					</span>
 					<h1 className="font-serif text-3xl font-medium text-gray-900 md:text-5xl">{name}</h1>
 				</div>
@@ -80,16 +80,15 @@ export default async function Page(props: { params: Promise<{ slug: string; chan
 
 			<div className="mx-auto max-w-[1920px] px-4 pb-16 pt-8 md:px-8">
 				<div className="flex flex-col gap-8 lg:flex-row">
-					{/* --- SIDEBAR: Minimalist Filter [cite: 125] --- */}
+					{/* --- SIDEBAR: Minimalist Filter --- */}
 					<aside className="hidden w-64 shrink-0 lg:block">
 						<div className="sticky top-32 flex flex-col gap-8">
 							<div>
-								<h3 className="mb-3 font-serif text-sm font-bold uppercase tracking-wide">Category</h3>
+								<h3 className="mb-3 font-serif text-sm font-bold uppercase tracking-wide">Material</h3>
 								<ul className="space-y-2 font-mono text-xs text-gray-500">
-									<li className="cursor-pointer hover:text-terracotta hover:underline">All Items</li>
-									<li className="cursor-pointer hover:text-terracotta hover:underline">Furniture</li>
-									<li className="cursor-pointer hover:text-terracotta hover:underline">Lighting</li>
-									<li className="cursor-pointer hover:text-terracotta hover:underline">Tableware</li>
+									<li className="cursor-pointer hover:text-terracotta hover:underline">Oak & Walnut</li>
+									<li className="cursor-pointer hover:text-terracotta hover:underline">Ceramic</li>
+									<li className="cursor-pointer hover:text-terracotta hover:underline">Leather</li>
 								</ul>
 							</div>
 							<div>
@@ -100,12 +99,21 @@ export default async function Page(props: { params: Promise<{ slug: string; chan
 									<li className="cursor-pointer hover:text-terracotta hover:underline">Denmark</li>
 								</ul>
 							</div>
+							<div>
+								<h3 className="mb-3 font-serif text-sm font-bold uppercase tracking-wide">Type</h3>
+								<ul className="space-y-2 font-mono text-xs text-gray-500">
+									<li className="cursor-pointer hover:text-terracotta hover:underline">Atelier (Handmade)</li>
+									<li className="cursor-pointer hover:text-terracotta hover:underline">
+										Brand (Manufactured)
+									</li>
+								</ul>
+							</div>
 						</div>
 					</aside>
 
 					{/* --- MAIN CONTENT --- */}
 					<div className="flex-1">
-						{/* --- PRODUCT GRID (Standard Editorial Grid) --- */}
+						{/* --- PRODUCT GRID --- */}
 						<div className="grid grid-cols-2 gap-px border border-gray-200 bg-gray-200 sm:grid-cols-3 xl:grid-cols-4">
 							{products.edges.map(({ node: product }) => (
 								<Link
@@ -151,7 +159,7 @@ export default async function Page(props: { params: Promise<{ slug: string; chan
 							))}
 						</div>
 
-						{/* --- SEO / Buying Guide Footer [cite: 21-23] --- */}
+						{/* --- SEO / Buying Guide Footer --- */}
 						{parsedContent && (
 							<div className="mt-16 border-t border-gray-200 pt-12">
 								<span className="mb-4 block font-mono text-xs uppercase tracking-widest text-terracotta">
@@ -159,7 +167,7 @@ export default async function Page(props: { params: Promise<{ slug: string; chan
 								</span>
 								<h2 className="mb-6 font-serif text-2xl font-medium text-gray-900">About {name}</h2>
 								<div className="prose prose-sm prose-neutral max-w-none prose-headings:font-serif prose-a:text-terracotta">
-									{/* FIX: Map over strictly typed blocks */}
+									{/* FIX: Map over typed blocks */}
 									{parsedContent.blocks.map((block) => (
 										<p key={block.id} className="mb-4 break-inside-avoid leading-relaxed text-gray-600">
 											{block.data.text}
