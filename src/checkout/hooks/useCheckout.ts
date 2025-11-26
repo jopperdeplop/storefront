@@ -1,5 +1,4 @@
 import { useEffect, useMemo } from "react";
-
 import { type Checkout, useCheckoutQuery } from "@/checkout/graphql";
 import { extractCheckoutIdFromUrl } from "@/checkout/lib/utils/url";
 import { useCheckoutUpdateStateActions } from "@/checkout/state/updateStateStore";
@@ -13,37 +12,29 @@ export const useCheckout = ({ pause = false } = {}) => {
 		pause: pause,
 	});
 
-	// --- FIX START ---
+	useEffect(() => setLoadingCheckout(fetching || stale), [fetching, setLoadingCheckout, stale]);
 
-	// 1. Detect if we are returning from a Payment Gateway
-	// We check the URL for 'redirect_status' (Stripe standard) or 'processingPayment' flag.
-	const isPaymentRedirect = useMemo(() => {
+	// --- NEW CODE START ---
+	// 1. Check if the URL has the Stripe success flag
+	const isPaymentSuccess = useMemo(() => {
 		if (typeof window === "undefined") return false;
 		const params = new URLSearchParams(window.location.search);
-		return params.has("redirect_status") || params.has("processingPayment");
+		return params.get("redirect_status") === "succeeded";
 	}, []);
 
-	// 2. Determine "Artificial" Loading State
-	// If we are in a redirect flow AND the checkout is missing (null), it means the
-	// backend likely already converted it to an Order.
-	// We force the state to look like it is still "fetching" to prevent the Error Screen.
-	const isTransitioningToOrder = isPaymentRedirect && !data?.checkout;
-
-	// 3. Combine real fetching with our artificial wait
-	const isActuallyFetching = fetching || stale || isTransitioningToOrder;
-
-	// --- FIX END ---
-
-	useEffect(() => {
-		setLoadingCheckout(isActuallyFetching);
-	}, [isActuallyFetching, setLoadingCheckout]);
+	// 2. Calculate the "Success" state
+	// If the payment was successful, AND the checkout is gone (null), AND we aren't loading...
+	// Then this is a completed order, not a missing page.
+	const isOrderFinalized = isPaymentSuccess && !data?.checkout && !fetching;
+	// --- NEW CODE END ---
 
 	return useMemo(
 		() => ({
 			checkout: data?.checkout as Checkout,
-			fetching: isActuallyFetching, // Return our "safe" fetching state
+			fetching: fetching || stale,
+			isOrderFinalized, // We export this new flag to the view
 			refetch,
 		}),
-		[data?.checkout, isActuallyFetching, refetch],
+		[data?.checkout, fetching, refetch, stale, isOrderFinalized],
 	);
 };
