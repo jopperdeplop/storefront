@@ -241,8 +241,8 @@ export default async function Page(props: {
 							{/* Static "Material Standard" reinforcement if no description exists */}
 							{!description && (
 								<p className="text-lg leading-relaxed text-gray-600">
-									This product adheres to the Euro-Standard certification for authentic craftsmanship. Created
-									in verified European workshops using locally sourced materials.
+									This product adheres to the Salp Euro-Standard certification for authentic craftsmanship.
+									Created in verified European workshops using locally sourced materials.
 								</p>
 							)}
 						</div>
