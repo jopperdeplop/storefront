@@ -20,7 +20,7 @@ export const SearchBar = ({ channel }: { channel: string }) => {
 				<input
 					type="text"
 					name="search"
-					placeholder="Search products TEST & brands..."
+					placeholder="Search products & brands..."
 					autoComplete="on"
 					required
 					// UPDATED: Added 'border-stone-200' instead of transparent for subtle definition
