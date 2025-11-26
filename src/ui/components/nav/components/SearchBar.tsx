@@ -1,41 +1,149 @@
-import { redirect } from "next/navigation";
-import { SearchIcon } from "lucide-react";
+"use client";
 
-export const SearchBar = ({ channel }: { channel: string }) => {
-	async function onSubmit(formData: FormData) {
-		"use server";
-		const search = formData.get("search") as string;
-		if (search && search.trim().length > 0) {
-			redirect(`/${encodeURIComponent(channel)}/search?query=${encodeURIComponent(search)}`);
-		}
-	}
+import { useState, useRef, useEffect } from "react";
+import { useParams } from "next/navigation";
+import Link from "next/link";
+// Fix: Updated import for Algolia v5
+import { liteClient as algoliasearch } from "algoliasearch/lite";
+import { InstantSearch, useSearchBox, useHits, Configure } from "react-instantsearch";
+import { getAlgoliaIndexName } from "@/lib/algolia-config";
+
+// Define the shape of the data coming from Algolia
+interface ProductHit {
+	objectID: string;
+	slug: string;
+	name: string;
+	thumbnail?: {
+		url: string;
+	} | null;
+	category?: {
+		name: string;
+	} | null;
+	grossPrice?:
+		| number
+		| {
+				amount: number;
+		  };
+}
+
+// Initialize the Algolia Client
+const searchClient = algoliasearch(
+	process.env.NEXT_PUBLIC_ALGOLIA_APP_ID || "",
+	process.env.NEXT_PUBLIC_ALGOLIA_SEARCH_KEY || "",
+);
+
+// --- Sub-Component: The Input Field ---
+function CustomSearchBox({ onFocus }: { onFocus: () => void }) {
+	const { query, refine } = useSearchBox();
 
 	return (
-		<form
-			action={onSubmit}
-			className="group relative my-2 flex w-full items-center justify-items-center text-sm lg:w-80"
-		>
-			<label className="w-full">
-				<span className="sr-only">search for products</span>
-				<input
-					type="text"
-					name="search"
-					placeholder="Search products & brands..."
-					autoComplete="on"
-					required
-					// UPDATED: Added 'border-stone-200' instead of transparent for subtle definition
-					className="h-10 w-full rounded-full border border-stone-200 bg-stone-100 px-6 py-2 pr-10 font-sans text-sm text-gray-900 transition-all placeholder:text-gray-400 hover:border-stone-300 hover:bg-stone-200 focus:border-terracotta focus:bg-white focus:outline-none focus:ring-1 focus:ring-terracotta"
-				/>
-			</label>
-			<div className="absolute inset-y-0 right-0 flex items-center pr-3">
-				<button
-					type="submit"
-					className="inline-flex aspect-square h-8 w-8 items-center justify-center rounded-full text-gray-400 transition-colors hover:text-terracotta group-invalid:pointer-events-none group-invalid:opacity-50"
-				>
-					<span className="sr-only">search</span>
-					<SearchIcon aria-hidden className="h-4 w-4" />
-				</button>
-			</div>
-		</form>
+		<div className="relative w-full">
+			<input
+				type="search"
+				placeholder="Search for products..."
+				value={query}
+				onChange={(e) => refine(e.target.value)}
+				onFocus={onFocus}
+				className="w-full rounded-md border border-neutral-200 bg-neutral-50 px-4 py-2 text-black placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+			/>
+			<span className="pointer-events-none absolute right-3 top-2.5 text-neutral-400">🔍</span>
+		</div>
 	);
-};
+}
+
+// --- Sub-Component: The Results Dropdown ---
+function CustomHits({ isVisible, onClose }: { isVisible: boolean; onClose: () => void }) {
+	const { hits } = useHits();
+	const params = useParams();
+
+	// Safe type casting for params
+	const currentChannel = (params?.channel as string) || "default-channel";
+
+	if (!isVisible || hits.length === 0) return null;
+
+	return (
+		<div className="absolute left-0 right-0 top-full z-50 mt-2 max-h-[80vh] overflow-y-auto rounded-md border border-neutral-100 bg-white shadow-xl">
+			{hits.map((hit) => {
+				// Cast the generic hit to our interface
+				const product = hit as unknown as ProductHit;
+
+				return (
+					<Link
+						key={product.objectID}
+						href={`/${currentChannel}/products/${product.slug}`}
+						onClick={onClose}
+						className="flex items-center gap-4 border-b border-neutral-100 p-3 transition-colors last:border-0 hover:bg-neutral-50"
+					>
+						{/* Image Fallback */}
+						<div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded bg-neutral-100">
+							{product.thumbnail?.url ? (
+								/* eslint-disable-next-line @next/next/no-img-element */
+								<img src={product.thumbnail.url} alt={product.name} className="h-full w-full object-cover" />
+							) : (
+								<div className="flex h-full w-full items-center justify-center text-xs text-neutral-400">
+									Img
+								</div>
+							)}
+						</div>
+
+						<div className="min-w-0 flex-1">
+							<h4 className="truncate text-sm font-medium text-neutral-900">{product.name}</h4>
+							{product.category?.name && (
+								<p className="truncate text-xs text-neutral-500">{product.category.name}</p>
+							)}
+						</div>
+
+						<div className="whitespace-nowrap text-sm font-semibold text-neutral-900">
+							{/* Handle price being either a raw number or an object depending on Algolia settings */}
+							{typeof product.grossPrice === "object" && product.grossPrice !== null
+								? product.grossPrice.amount
+								: product.grossPrice}
+						</div>
+					</Link>
+				);
+			})}
+		</div>
+	);
+}
+
+// --- Main Component ---
+export function SearchBar() {
+	const params = useParams();
+	const [showResults, setShowResults] = useState(false);
+	const containerRef = useRef<HTMLDivElement>(null);
+
+	// 1. Get Channel from URL
+	const currentChannel = (params?.channel as string) || "default-channel";
+
+	// 2. Get the Dynamic Index Name
+	const indexName = getAlgoliaIndexName(currentChannel);
+
+	// 3. Close dropdown when clicking outside
+	useEffect(() => {
+		function handleClickOutside(event: MouseEvent) {
+			if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+				setShowResults(false);
+			}
+		}
+		document.addEventListener("mousedown", handleClickOutside);
+		return () => document.removeEventListener("mousedown", handleClickOutside);
+	}, []);
+
+	return (
+		<div ref={containerRef} className="relative mx-auto w-full max-w-md">
+			<InstantSearch
+				searchClient={searchClient}
+				indexName={indexName}
+				// Key forces a refresh when channel changes, preventing "wrong currency" bugs
+				key={indexName}
+			>
+				{/* Limit results to 5 items */}
+				<Configure hitsPerPage={5} />
+
+				<CustomSearchBox onFocus={() => setShowResults(true)} />
+
+				<CustomHits isVisible={showResults} onClose={() => setShowResults(false)} />
+			</InstantSearch>
+		</div>
+	);
+}
