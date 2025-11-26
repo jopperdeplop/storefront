@@ -12,9 +12,9 @@ interface ProductHit {
 	objectID: string;
 	slug: string;
 	name: string;
-	thumbnail?: {
-		url: string;
-	} | null;
+	// Saleor App usually sends thumbnail as a string, but we handle both cases
+	thumbnail?: string | { url: string } | null;
+	media?: Array<{ url: string; type: string }>;
 	category?: {
 		name: string;
 	} | null;
@@ -25,16 +25,43 @@ interface ProductHit {
 		  };
 }
 
-// --- ALGOLIA CLIENT INITIALIZATION (FIXED) ---
+// --- ALGOLIA CLIENT INITIALIZATION ---
 const appId = process.env.NEXT_PUBLIC_ALGOLIA_APP_ID;
 const apiKey = process.env.NEXT_PUBLIC_ALGOLIA_SEARCH_KEY;
 
-// If keys are missing (like during build), provide a dummy client to prevent crashes
 const searchClient =
 	appId && apiKey
 		? algoliasearch(appId, apiKey)
 		: ({
-				search: () => Promise.resolve({ results: [] }),
+				search: (args: unknown) => {
+					// Handle Algolia v5 request structure safely without using 'any'
+					let requests: unknown[] = [];
+
+					if (Array.isArray(args)) {
+						requests = args;
+					} else if (
+						typeof args === "object" &&
+						args !== null &&
+						"requests" in args &&
+						Array.isArray((args as { requests: unknown[] }).requests)
+					) {
+						requests = (args as { requests: unknown[] }).requests;
+					}
+
+					return Promise.resolve({
+						results: requests.map(() => ({
+							hits: [],
+							nbHits: 0,
+							nbPages: 0,
+							page: 0,
+							processingTimeMS: 0,
+							hitsPerPage: 0,
+							exhaustiveNbHits: false,
+							query: "",
+							params: "",
+						})),
+					});
+				},
 			} as unknown as ReturnType<typeof algoliasearch>);
 
 // --- Sub-Component: The Input Field ---
@@ -58,10 +85,8 @@ function CustomSearchBox({ onFocus }: { onFocus: () => void }) {
 
 // --- Sub-Component: The Results Dropdown ---
 function CustomHits({ isVisible, onClose }: { isVisible: boolean; onClose: () => void }) {
-	const { hits } = useHits();
+	const { hits = [] } = useHits();
 	const params = useParams();
-
-	// Safe type casting for params
 	const currentChannel = (params?.channel as string) || "default-channel";
 
 	if (!isVisible || hits.length === 0) return null;
@@ -69,8 +94,17 @@ function CustomHits({ isVisible, onClose }: { isVisible: boolean; onClose: () =>
 	return (
 		<div className="absolute left-0 right-0 top-full z-50 mt-2 max-h-[80vh] overflow-y-auto rounded-md border border-neutral-100 bg-white shadow-xl">
 			{hits.map((hit) => {
-				// Cast the generic hit to our interface
 				const product = hit as unknown as ProductHit;
+
+				// Robust Image Logic: Try thumbnail string -> thumbnail object -> first media item
+				let imageUrl = "";
+				if (typeof product.thumbnail === "string") {
+					imageUrl = product.thumbnail;
+				} else if (typeof product.thumbnail === "object" && product.thumbnail?.url) {
+					imageUrl = product.thumbnail.url;
+				} else if (product.media && product.media.length > 0) {
+					imageUrl = product.media[0].url;
+				}
 
 				return (
 					<Link
@@ -81,9 +115,9 @@ function CustomHits({ isVisible, onClose }: { isVisible: boolean; onClose: () =>
 					>
 						{/* Image Fallback */}
 						<div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded bg-neutral-100">
-							{product.thumbnail?.url ? (
+							{imageUrl ? (
 								/* eslint-disable-next-line @next/next/no-img-element */
-								<img src={product.thumbnail.url} alt={product.name} className="h-full w-full object-cover" />
+								<img src={imageUrl} alt={product.name} className="h-full w-full object-cover" />
 							) : (
 								<div className="flex h-full w-full items-center justify-center text-xs text-neutral-400">
 									Img
@@ -99,7 +133,6 @@ function CustomHits({ isVisible, onClose }: { isVisible: boolean; onClose: () =>
 						</div>
 
 						<div className="whitespace-nowrap text-sm font-semibold text-neutral-900">
-							{/* Handle price being either a raw number or an object depending on Algolia settings */}
 							{typeof product.grossPrice === "object" && product.grossPrice !== null
 								? product.grossPrice.amount
 								: product.grossPrice}
@@ -116,14 +149,9 @@ export function SearchBar() {
 	const params = useParams();
 	const [showResults, setShowResults] = useState(false);
 	const containerRef = useRef<HTMLDivElement>(null);
-
-	// 1. Get Channel from URL
 	const currentChannel = (params?.channel as string) || "default-channel";
-
-	// 2. Get the Dynamic Index Name
 	const indexName = getAlgoliaIndexName(currentChannel);
 
-	// 3. Close dropdown when clicking outside
 	useEffect(() => {
 		function handleClickOutside(event: MouseEvent) {
 			if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
@@ -136,17 +164,9 @@ export function SearchBar() {
 
 	return (
 		<div ref={containerRef} className="relative mx-auto w-full max-w-md">
-			<InstantSearch
-				searchClient={searchClient}
-				indexName={indexName}
-				// Key forces a refresh when channel changes, preventing "wrong currency" bugs
-				key={indexName}
-			>
-				{/* Limit results to 5 items */}
+			<InstantSearch searchClient={searchClient} indexName={indexName} key={indexName}>
 				<Configure hitsPerPage={5} />
-
 				<CustomSearchBox onFocus={() => setShowResults(true)} />
-
 				<CustomHits isVisible={showResults} onClose={() => setShowResults(false)} />
 			</InstantSearch>
 		</div>
