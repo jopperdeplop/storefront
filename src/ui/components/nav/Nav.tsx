@@ -19,7 +19,8 @@ export const Nav = ({ channel }: { channel: string }) => {
 			<div className="ml-auto flex items-center gap-4 lg:gap-8">
 				{/* Search Bar (Desktop) */}
 				<div className="hidden min-w-[300px] lg:flex">
-					<SearchBar channel={channel} />
+					{/* FIXED: Removed channel prop */}
+					<SearchBar />
 				</div>
 
 				{/* User Account */}
@@ -38,7 +39,8 @@ export const Nav = ({ channel }: { channel: string }) => {
 			{/* Mobile Menu Trigger */}
 			<Suspense>
 				<MobileMenu>
-					<SearchBar channel={channel} />
+					{/* FIXED: Removed channel prop */}
+					<SearchBar />
 					{/* UPDATED: Use MobileNavLinks here to get the dropdowns/plus icons */}
 					<MobileNavLinks channel={channel} />
 				</MobileMenu>
