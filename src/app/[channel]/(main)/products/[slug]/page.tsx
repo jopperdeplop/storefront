@@ -297,7 +297,7 @@ export default async function Page(props: {
 											<span className="text-terracotta">✓</span> Official Brand Partner
 										</li>
 										<li className="flex items-center gap-2">
-											<span className="text-terracotta">✓</span> Direct Shipping from Workshop
+											<span className="text-terracotta">✓</span> Direct Shipping from Brand
 										</li>
 									</ul>
 								</div>
