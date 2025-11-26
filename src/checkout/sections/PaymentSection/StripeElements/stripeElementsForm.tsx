@@ -1,6 +1,7 @@
 import { type FormEventHandler, useEffect, useState } from "react";
 import { PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { type StripePaymentElementOptions } from "@stripe/stripe-js";
+import { getUrlForTransactionInitialize } from "../utils";
 import { usePaymentProcessingScreen } from "../PaymentProcessingScreen";
 import {
 	useCheckoutValidationActions,
@@ -97,16 +98,11 @@ export function CheckoutForm() {
 
 		setIsLoading(true);
 
-		// FIX: Added 'no-unsafe-assignment' to the disable list below
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
-		const channelSlug = (checkout as any)?.channel?.slug || "default-channel";
-
 		stripe
 			.confirmPayment({
 				elements,
 				confirmParams: {
-					// We construct a URL that explicitly includes the channel slug.
-					return_url: `${window.location.origin}/${channelSlug}/checkout?checkout=${checkout.id}&processingPayment=true`,
+					return_url: getUrlForTransactionInitialize().newUrl,
 					payment_method_data: {
 						billing_details: {
 							name: checkout.billingAddress?.firstName + " " + checkout.billingAddress?.lastName,
@@ -132,19 +128,13 @@ export function CheckoutForm() {
 					setIsProcessingPayment(false);
 					// This point will only be reached if there is an immediate error when
 					// confirming the payment. Otherwise, your customer will be redirected to
-					// your `return_url`.
+					// your `return_url`. For some payment methods like iDEAL, your customer will
+					// be redirected to an intermediate site first to authorize the payment, then
+					// redirected to the `return_url`.
 					if (error.type === "card_error" || error.type === "validation_error") {
-						showCustomErrors([
-							{
-								message: error.message ?? "Something went wrong",
-							},
-						]);
+						showCustomErrors([{ message: error.message ?? "Something went wrong" }]);
 					} else {
-						showCustomErrors([
-							{
-								message: "An unexpected error occurred.",
-							},
-						]);
+						showCustomErrors([{ message: "An unexpected error occurred." }]);
 					}
 					return;
 				}
@@ -157,7 +147,15 @@ export function CheckoutForm() {
 				setIsProcessingPayment(false);
 			});
 
-		// eslint-disable-next-line react-hooks/exhaustive-deps
+		// @todo
+		// there is a previous transaction going on, we want to process instead of initialize
+		// if (currentTransactionId) {
+		// 	void onTransactionProccess({
+		// 		data: adyenCheckoutSubmitParams?.state.data,
+		// 		id: currentTransactionId,
+		// 	});
+		// 	return;
+		// }
 	}, [
 		anyRequestsInProgress,
 		checkout.billingAddress?.city,
