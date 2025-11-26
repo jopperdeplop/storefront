@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-// Fix: Updated import for Algolia v5
 import { liteClient as algoliasearch } from "algoliasearch/lite";
 import { InstantSearch, useSearchBox, useHits, Configure } from "react-instantsearch";
 import { getAlgoliaIndexName } from "@/lib/algolia-config";
@@ -26,11 +25,17 @@ interface ProductHit {
 		  };
 }
 
-// Initialize the Algolia Client
-const searchClient = algoliasearch(
-	process.env.NEXT_PUBLIC_ALGOLIA_APP_ID || "",
-	process.env.NEXT_PUBLIC_ALGOLIA_SEARCH_KEY || "",
-);
+// --- ALGOLIA CLIENT INITIALIZATION (FIXED) ---
+const appId = process.env.NEXT_PUBLIC_ALGOLIA_APP_ID;
+const apiKey = process.env.NEXT_PUBLIC_ALGOLIA_SEARCH_KEY;
+
+// If keys are missing (like during build), provide a dummy client to prevent crashes
+const searchClient =
+	appId && apiKey
+		? algoliasearch(appId, apiKey)
+		: ({
+				search: () => Promise.resolve({ results: [] }),
+			} as unknown as ReturnType<typeof algoliasearch>);
 
 // --- Sub-Component: The Input Field ---
 function CustomSearchBox({ onFocus }: { onFocus: () => void }) {
