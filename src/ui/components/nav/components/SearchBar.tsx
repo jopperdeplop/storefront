@@ -72,13 +72,29 @@ function CustomSearchBox({ onFocus }: { onFocus: () => void }) {
 		<div className="relative w-full">
 			<input
 				type="search"
-				placeholder="Search for products..."
+				placeholder="Search for products and more ..."
 				value={query}
 				onChange={(e) => refine(e.target.value)}
 				onFocus={onFocus}
-				className="w-full rounded-md border border-neutral-200 bg-neutral-50 px-4 py-2 text-black placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+				// UPDATED STYLES: Changed rounded-md to rounded-full
+				className="w-full rounded-full border border-stone-100 bg-stone-50 px-4 py-2.5 font-sans text-carbon transition-colors duration-200 placeholder:text-stone-400 focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta"
 			/>
-			<span className="pointer-events-none absolute right-3 top-2.5 text-neutral-400">🔍</span>
+			<span className="pointer-events-none absolute right-3 top-3 text-stone-400">
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					fill="none"
+					viewBox="0 0 24 24"
+					strokeWidth={1.5}
+					stroke="currentColor"
+					className="h-5 w-5"
+				>
+					<path
+						strokeLinecap="round"
+						strokeLinejoin="round"
+						d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+					/>
+				</svg>
+			</span>
 		</div>
 	);
 }
@@ -92,7 +108,8 @@ function CustomHits({ isVisible, onClose }: { isVisible: boolean; onClose: () =>
 	if (!isVisible || hits.length === 0) return null;
 
 	return (
-		<div className="absolute left-0 right-0 top-full z-50 mt-2 max-h-[80vh] overflow-y-auto rounded-md border border-neutral-100 bg-white shadow-xl">
+		// UPDATED STYLES: Changed rounded-md to rounded-xl for the dropdown
+		<div className="absolute left-0 right-0 top-full z-50 mt-2 max-h-[80vh] overflow-y-auto rounded-xl border border-stone-100 bg-white shadow-xl">
 			{hits.map((hit) => {
 				const product = hit as unknown as ProductHit;
 
@@ -111,28 +128,36 @@ function CustomHits({ isVisible, onClose }: { isVisible: boolean; onClose: () =>
 						key={product.objectID}
 						href={`/${currentChannel}/products/${product.slug}`}
 						onClick={onClose}
-						className="flex items-center gap-4 border-b border-neutral-100 p-3 transition-colors last:border-0 hover:bg-neutral-50"
+						// UPDATED STYLES: Hover uses Stone-50
+						className="group flex items-center gap-4 border-b border-stone-100 p-4 transition-colors duration-150 last:border-0 hover:bg-stone-50"
 					>
 						{/* Image Fallback */}
-						<div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded bg-neutral-100">
+						<div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded border border-stone-100 bg-stone-50">
 							{imageUrl ? (
 								/* eslint-disable-next-line @next/next/no-img-element */
-								<img src={imageUrl} alt={product.name} className="h-full w-full object-cover" />
+								<img
+									src={imageUrl}
+									alt={product.name}
+									className="h-full w-full object-cover opacity-90 transition-opacity group-hover:opacity-100"
+								/>
 							) : (
-								<div className="flex h-full w-full items-center justify-center text-xs text-neutral-400">
-									Img
+								<div className="flex h-full w-full items-center justify-center font-mono text-[10px] text-stone-400">
+									IMG
 								</div>
 							)}
 						</div>
 
 						<div className="min-w-0 flex-1">
-							<h4 className="truncate text-sm font-medium text-neutral-900">{product.name}</h4>
+							{/* UPDATED STYLES: Serif font for product titles (Carbon) */}
+							<h4 className="truncate font-serif text-base leading-tight text-carbon">{product.name}</h4>
+
 							{product.category?.name && (
-								<p className="truncate text-xs text-neutral-500">{product.category.name}</p>
+								// UPDATED STYLES: Sans font for metadata (Stone-500)
+								<p className="mt-0.5 truncate font-sans text-xs text-stone-500">{product.category.name}</p>
 							)}
 						</div>
 
-						<div className="whitespace-nowrap text-sm font-semibold text-neutral-900">
+						<div className="whitespace-nowrap font-sans text-sm font-medium text-terracotta">
 							{typeof product.grossPrice === "object" && product.grossPrice !== null
 								? product.grossPrice.amount
 								: product.grossPrice}
