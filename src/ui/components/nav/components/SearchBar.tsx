@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { liteClient as algoliasearch } from "algoliasearch/lite";
 import { InstantSearch, useSearchBox, useHits, Configure } from "react-instantsearch";
@@ -66,35 +66,78 @@ const searchClient =
 
 // --- Sub-Component: The Input Field ---
 function CustomSearchBox({ onFocus }: { onFocus: () => void }) {
-	const { query, refine } = useSearchBox();
+	const { query, refine, clear } = useSearchBox();
+	const router = useRouter();
+	const params = useParams();
+	const currentChannel = (params?.channel as string) || "default-channel";
+
+	const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+		if (e.key === "Enter") {
+			e.preventDefault(); // Prevent default form submission if any
+			// Redirect to search overview page
+			// NOTE: You must create a page at src/app/[channel]/(main)/search/page.tsx for this to work!
+			router.push(`/${currentChannel}/search?q=${encodeURIComponent(query)}`);
+
+			// Optional: Blur input to close dropdown if mobile/desired
+			(e.target as HTMLInputElement).blur();
+		}
+	};
 
 	return (
 		<div className="relative w-full">
 			<input
 				type="search"
-				placeholder="Search for products and more ..."
+				placeholder="Search for products, brands, or categories..."
 				value={query}
 				onChange={(e) => refine(e.target.value)}
 				onFocus={onFocus}
-				// UPDATED STYLES: Changed rounded-md to rounded-full
-				className="w-full rounded-full border border-stone-100 bg-stone-50 px-4 py-2.5 font-sans text-carbon transition-colors duration-200 placeholder:text-stone-400 focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta"
+				onKeyDown={handleKeyDown}
+				// UPDATED STYLES: Added specific classes to hide native browser search UI
+				className="w-full appearance-none rounded-full border border-stone-100 bg-stone-50 py-2.5 pl-4 pr-10 font-sans text-carbon transition-colors duration-200 placeholder:text-stone-400 focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden [&::-webkit-search-results-button]:hidden [&::-webkit-search-results-decoration]:hidden"
 			/>
-			<span className="pointer-events-none absolute right-3 top-3 text-stone-400">
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					fill="none"
-					viewBox="0 0 24 24"
-					strokeWidth={1.5}
-					stroke="currentColor"
-					className="h-5 w-5"
+
+			{/* Logic: Show 'X' if there is a query to clear it. 
+         Show Magnifier if empty. 
+         This prevents the visual merge/clutter.
+      */}
+			{query ? (
+				<button
+					onClick={() => {
+						clear();
+						refine(""); // Ensure query is cleared in state
+					}}
+					className="absolute right-3 top-3 text-stone-400 transition-colors hover:text-terracotta"
+					aria-label="Clear search"
 				>
-					<path
-						strokeLinecap="round"
-						strokeLinejoin="round"
-						d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
-					/>
-				</svg>
-			</span>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						fill="none"
+						viewBox="0 0 24 24"
+						strokeWidth={1.5}
+						stroke="currentColor"
+						className="h-5 w-5"
+					>
+						<path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+					</svg>
+				</button>
+			) : (
+				<span className="pointer-events-none absolute right-3 top-3 text-stone-400">
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						fill="none"
+						viewBox="0 0 24 24"
+						strokeWidth={1.5}
+						stroke="currentColor"
+						className="h-5 w-5"
+					>
+						<path
+							strokeLinecap="round"
+							strokeLinejoin="round"
+							d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+						/>
+					</svg>
+				</span>
+			)}
 		</div>
 	);
 }
