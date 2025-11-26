@@ -73,12 +73,11 @@ function CustomSearchBox({ onFocus }: { onFocus: () => void }) {
 
 	const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
 		if (e.key === "Enter") {
-			e.preventDefault(); // Prevent default form submission if any
-			// Redirect to search overview page
-			// NOTE: You must create a page at src/app/[channel]/(main)/search/page.tsx for this to work!
-			router.push(`/${currentChannel}/search?q=${encodeURIComponent(query)}`);
+			e.preventDefault();
+			// FIX: Redirect to the existing Saleor Products page with a search query
+			// Standard Saleor URL pattern: /{channel}/products?search={query}
+			router.push(`/${currentChannel}/products?search=${encodeURIComponent(query)}`);
 
-			// Optional: Blur input to close dropdown if mobile/desired
 			(e.target as HTMLInputElement).blur();
 		}
 	};
@@ -86,29 +85,26 @@ function CustomSearchBox({ onFocus }: { onFocus: () => void }) {
 	return (
 		<div className="relative w-full">
 			<input
-				type="search"
+				type="text" // FIX: Changed from 'search' to 'text' to kill the native 'X' button
 				placeholder="Search for products, brands, or categories..."
 				value={query}
 				onChange={(e) => refine(e.target.value)}
 				onFocus={onFocus}
 				onKeyDown={handleKeyDown}
-				// UPDATED STYLES: Added specific classes to hide native browser search UI
-				className="w-full appearance-none rounded-full border border-stone-100 bg-stone-50 py-2.5 pl-4 pr-10 font-sans text-carbon transition-colors duration-200 placeholder:text-stone-400 focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden [&::-webkit-search-results-button]:hidden [&::-webkit-search-results-decoration]:hidden"
+				className="w-full appearance-none rounded-full border border-stone-100 bg-stone-50 py-2.5 pl-4 pr-10 font-sans text-carbon transition-colors duration-200 placeholder:text-stone-400 focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta"
 			/>
 
-			{/* Logic: Show 'X' if there is a query to clear it. 
-         Show Magnifier if empty. 
-         This prevents the visual merge/clutter.
-      */}
+			{/* Custom Clear Button / Search Icon Logic */}
 			{query ? (
 				<button
 					onClick={() => {
 						clear();
-						refine(""); // Ensure query is cleared in state
+						refine("");
 					}}
 					className="absolute right-3 top-3 text-stone-400 transition-colors hover:text-terracotta"
 					aria-label="Clear search"
 				>
+					{/* Close (X) Icon */}
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
 						fill="none"
@@ -122,6 +118,7 @@ function CustomSearchBox({ onFocus }: { onFocus: () => void }) {
 				</button>
 			) : (
 				<span className="pointer-events-none absolute right-3 top-3 text-stone-400">
+					{/* Magnifying Glass Icon */}
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
 						fill="none"
@@ -151,12 +148,11 @@ function CustomHits({ isVisible, onClose }: { isVisible: boolean; onClose: () =>
 	if (!isVisible || hits.length === 0) return null;
 
 	return (
-		// UPDATED STYLES: Changed rounded-md to rounded-xl for the dropdown
 		<div className="absolute left-0 right-0 top-full z-50 mt-2 max-h-[80vh] overflow-y-auto rounded-xl border border-stone-100 bg-white shadow-xl">
 			{hits.map((hit) => {
 				const product = hit as unknown as ProductHit;
 
-				// Robust Image Logic: Try thumbnail string -> thumbnail object -> first media item
+				// Robust Image Logic
 				let imageUrl = "";
 				if (typeof product.thumbnail === "string") {
 					imageUrl = product.thumbnail;
@@ -171,7 +167,6 @@ function CustomHits({ isVisible, onClose }: { isVisible: boolean; onClose: () =>
 						key={product.objectID}
 						href={`/${currentChannel}/products/${product.slug}`}
 						onClick={onClose}
-						// UPDATED STYLES: Hover uses Stone-50
 						className="group flex items-center gap-4 border-b border-stone-100 p-4 transition-colors duration-150 last:border-0 hover:bg-stone-50"
 					>
 						{/* Image Fallback */}
@@ -191,11 +186,8 @@ function CustomHits({ isVisible, onClose }: { isVisible: boolean; onClose: () =>
 						</div>
 
 						<div className="min-w-0 flex-1">
-							{/* UPDATED STYLES: Serif font for product titles (Carbon) */}
 							<h4 className="truncate font-serif text-base leading-tight text-carbon">{product.name}</h4>
-
 							{product.category?.name && (
-								// UPDATED STYLES: Sans font for metadata (Stone-500)
 								<p className="mt-0.5 truncate font-sans text-xs text-stone-500">{product.category.name}</p>
 							)}
 						</div>
