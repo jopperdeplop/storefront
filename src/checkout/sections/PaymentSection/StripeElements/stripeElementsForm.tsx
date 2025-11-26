@@ -132,9 +132,17 @@ export function CheckoutForm() {
 					// be redirected to an intermediate site first to authorize the payment, then
 					// redirected to the `return_url`.
 					if (error.type === "card_error" || error.type === "validation_error") {
-						showCustomErrors([{ message: error.message ?? "Something went wrong" }]);
+						showCustomErrors([
+							{
+								message: error.message ?? "Something went wrong",
+							},
+						]);
 					} else {
-						showCustomErrors([{ message: "An unexpected error occurred." }]);
+						showCustomErrors([
+							{
+								message: "An unexpected error occurred.",
+							},
+						]);
 					}
 					return;
 				}
@@ -150,11 +158,11 @@ export function CheckoutForm() {
 		// @todo
 		// there is a previous transaction going on, we want to process instead of initialize
 		// if (currentTransactionId) {
-		// 	void onTransactionProccess({
-		// 		data: adyenCheckoutSubmitParams?.state.data,
-		// 		id: currentTransactionId,
-		// 	});
-		// 	return;
+		//  void onTransactionProccess({
+		//      data: adyenCheckoutSubmitParams?.state.data,
+		//      id: currentTransactionId,
+		//  });
+		//  return;
 		// }
 	}, [
 		anyRequestsInProgress,
