@@ -9,7 +9,7 @@ import {
 	InstantSearch,
 	useHits,
 	Configure,
-	RefinementList,
+	HierarchicalMenu, // Switched from RefinementList
 	useInstantSearch,
 	usePagination,
 } from "react-instantsearch";
@@ -45,14 +45,20 @@ const searchClient =
 				},
 			} as unknown as ReturnType<typeof algoliasearch>);
 
+// --- UPDATED INTERFACE FOR HIERARCHICAL CATEGORIES ---
 interface ProductHit {
 	objectID: string;
 	slug: string;
 	name: string;
 	thumbnail?: string | { url: string } | null;
 	media?: Array<{ url: string; type: string }>;
-	// Updated to include the flat array usually sent by Saleor Search App
-	categories?: string[];
+	// Hierarchical Data Structure from Algolia
+	categories?: {
+		lvl0?: string;
+		lvl1?: string;
+		lvl2?: string;
+	};
+	// Fallback for older data structures
 	category?: { name: string } | null;
 	grossPrice?: number | { amount: number };
 }
@@ -71,7 +77,7 @@ function SearchResults({ channel }: { channel: string }) {
 			{hits.map((hit) => {
 				const product = hit as unknown as ProductHit;
 
-				// --- FIX: Image Logic ---
+				// Image Logic (Prioritize High Res)
 				let imageUrl = "";
 				if (product.media && product.media.length > 0 && product.media[0].url) {
 					imageUrl = product.media[0].url;
@@ -86,9 +92,23 @@ function SearchResults({ channel }: { channel: string }) {
 						? product.grossPrice.amount
 						: product.grossPrice || 0;
 
-				// --- FIX: Category Display Logic ---
-				// Try the flat array first (standard for Search App), then the object structure
-				const categoryName = product.categories?.[0] || product.category?.name || "Object";
+				// --- UPDATED DISPLAY LOGIC ---
+				// Extract the deepest level category name for display
+				// Example: "Apparel > Sweatshirts" -> "Sweatshirts"
+				let categoryName = "Object";
+
+				if (product.categories) {
+					// Try specific sub-category first (lvl1)
+					if (product.categories.lvl1) {
+						categoryName = product.categories.lvl1.split(" > ").pop() || product.categories.lvl1;
+					}
+					// Fallback to top-level (lvl0)
+					else if (product.categories.lvl0) {
+						categoryName = product.categories.lvl0;
+					}
+				} else if (product.category?.name) {
+					categoryName = product.category.name;
+				}
 
 				return (
 					<Link
@@ -145,7 +165,7 @@ function NoResultsBoundary() {
 	return null;
 }
 
-// --- COMPONENT: Pagination (Custom Styling) ---
+// --- COMPONENT: Pagination ---
 function CustomPagination() {
 	const { currentRefinement, nbPages, refine } = usePagination();
 
@@ -178,7 +198,7 @@ function CustomPagination() {
 	);
 }
 
-// --- MAIN SEARCH CONTENT (Wrapped Logic) ---
+// --- MAIN SEARCH CONTENT ---
 function SearchContent() {
 	const params = useParams();
 	const searchParams = useSearchParams();
@@ -197,7 +217,6 @@ function SearchContent() {
 			>
 				<Configure query={query} hitsPerPage={20} />
 
-				{/* --- HEADER (Updated: Removed sticky/fixed behavior) --- */}
 				<div className="border-b border-stone-200 bg-white transition-all">
 					<div className="mx-auto max-w-[1920px] px-4 py-6 md:px-8 md:py-8">
 						<span className="mb-2 block font-mono text-xs uppercase tracking-widest text-gray-400">
@@ -211,28 +230,26 @@ function SearchContent() {
 
 				<div className="mx-auto max-w-[1920px] px-4 pb-16 pt-8 md:px-8">
 					<div className="flex flex-col gap-8 lg:flex-row">
-						{/* --- SIDEBAR --- */}
 						<aside className="hidden w-64 shrink-0 lg:block">
 							<div className="sticky top-28 flex flex-col gap-8">
 								<div>
 									<h3 className="mb-3 font-serif text-sm font-bold uppercase tracking-wide">Categories</h3>
-									{/* FIX: Updated attribute to match Algolia dashboard ('categories' not 'category.name') */}
-									<RefinementList
-										attribute="categories"
+									{/* UPDATED: Hierarchical Menu for lvl0/lvl1 structure */}
+									<HierarchicalMenu
+										attributes={["categories.lvl0", "categories.lvl1"]}
 										classNames={{
 											list: "space-y-2 font-mono text-xs text-gray-500",
 											item: "group",
-											label: "flex items-center gap-2 cursor-pointer hover:text-terracotta transition-colors",
-											checkbox:
-												"w-3.5 h-3.5 border-gray-300 rounded-sm text-terracotta focus:ring-terracotta",
+											link: "flex items-center gap-2 cursor-pointer hover:text-terracotta transition-colors",
+											label: "flex-1",
 											count: "ml-auto text-[10px] text-gray-300 group-hover:text-terracotta",
+											selectedItem: "!text-terracotta font-bold",
 										}}
 									/>
 								</div>
 							</div>
 						</aside>
 
-						{/* --- MAIN CONTENT --- */}
 						<div className="flex-1">
 							<NoResultsBoundary />
 							<SearchResults channel={channel} />
@@ -245,7 +262,6 @@ function SearchContent() {
 	);
 }
 
-// --- DEFAULT EXPORT (Suspense Wrapper) ---
 export default function SearchPage() {
 	return (
 		<Suspense
