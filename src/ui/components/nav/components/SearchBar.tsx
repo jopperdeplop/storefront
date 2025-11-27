@@ -74,9 +74,8 @@ function CustomSearchBox({ onFocus }: { onFocus: () => void }) {
 	const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
 		if (e.key === "Enter") {
 			e.preventDefault();
-			// FIX: Redirect to the existing Saleor Products page with a search query
-			// Standard Saleor URL pattern: /{channel}/products?search={query}
-			router.push(`/${currentChannel}/products?search=${encodeURIComponent(query)}`);
+			// FIX: Redirect to our NEW custom search page: /{channel}/search?q={query}
+			router.push(`/${currentChannel}/search?q=${encodeURIComponent(query)}`);
 
 			(e.target as HTMLInputElement).blur();
 		}
@@ -85,7 +84,7 @@ function CustomSearchBox({ onFocus }: { onFocus: () => void }) {
 	return (
 		<div className="relative w-full">
 			<input
-				type="text" // FIX: Changed from 'search' to 'text' to kill the native 'X' button
+				type="text"
 				placeholder="Search for products, brands, or categories..."
 				value={query}
 				onChange={(e) => refine(e.target.value)}
@@ -94,7 +93,6 @@ function CustomSearchBox({ onFocus }: { onFocus: () => void }) {
 				className="w-full appearance-none rounded-full border border-stone-100 bg-stone-50 py-2.5 pl-4 pr-10 font-sans text-carbon transition-colors duration-200 placeholder:text-stone-400 focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta"
 			/>
 
-			{/* Custom Clear Button / Search Icon Logic */}
 			{query ? (
 				<button
 					onClick={() => {
@@ -104,7 +102,6 @@ function CustomSearchBox({ onFocus }: { onFocus: () => void }) {
 					className="absolute right-3 top-3 text-stone-400 transition-colors hover:text-terracotta"
 					aria-label="Clear search"
 				>
-					{/* Close (X) Icon */}
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
 						fill="none"
@@ -118,7 +115,6 @@ function CustomSearchBox({ onFocus }: { onFocus: () => void }) {
 				</button>
 			) : (
 				<span className="pointer-events-none absolute right-3 top-3 text-stone-400">
-					{/* Magnifying Glass Icon */}
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
 						fill="none"
