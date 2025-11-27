@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useSearchParams, useParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -166,8 +167,8 @@ function CustomPagination() {
 	);
 }
 
-// --- MAIN PAGE COMPONENT ---
-export default function SearchPage() {
+// --- MAIN SEARCH CONTENT (Wrapped Logic) ---
+function SearchContent() {
 	const params = useParams();
 	const searchParams = useSearchParams();
 
@@ -181,7 +182,7 @@ export default function SearchPage() {
 				searchClient={searchClient}
 				indexName={indexName}
 				key={indexName}
-				future={{ preserveSharedStateOnUnmount: true }} // FIX: Removes the warning
+				future={{ preserveSharedStateOnUnmount: true }}
 			>
 				<Configure query={query} hitsPerPage={20} />
 
@@ -229,5 +230,20 @@ export default function SearchPage() {
 				</div>
 			</InstantSearch>
 		</div>
+	);
+}
+
+// --- DEFAULT EXPORT (Suspense Wrapper) ---
+export default function SearchPage() {
+	return (
+		<Suspense
+			fallback={
+				<div className="flex min-h-screen items-center justify-center bg-stone-50 font-mono text-xs text-gray-400">
+					LOADING SEARCH...
+				</div>
+			}
+		>
+			<SearchContent />
+		</Suspense>
 	);
 }
