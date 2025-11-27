@@ -51,6 +51,8 @@ interface ProductHit {
 	name: string;
 	thumbnail?: string | { url: string } | null;
 	media?: Array<{ url: string; type: string }>;
+	// Updated to include the flat array usually sent by Saleor Search App
+	categories?: string[];
 	category?: { name: string } | null;
 	grossPrice?: number | { amount: number };
 }
@@ -70,10 +72,7 @@ function SearchResults({ channel }: { channel: string }) {
 				const product = hit as unknown as ProductHit;
 
 				// --- FIX: Image Logic ---
-				// 1. Try 'media' first (Full resolution image from Saleor)
-				// 2. Fallback to 'thumbnail' (Low res generated for search speed)
 				let imageUrl = "";
-
 				if (product.media && product.media.length > 0 && product.media[0].url) {
 					imageUrl = product.media[0].url;
 				} else if (typeof product.thumbnail === "string") {
@@ -86,6 +85,10 @@ function SearchResults({ channel }: { channel: string }) {
 					typeof product.grossPrice === "object" && product.grossPrice !== null
 						? product.grossPrice.amount
 						: product.grossPrice || 0;
+
+				// --- FIX: Category Display Logic ---
+				// Try the flat array first (standard for Search App), then the object structure
+				const categoryName = product.categories?.[0] || product.category?.name || "Object";
 
 				return (
 					<Link
@@ -110,8 +113,8 @@ function SearchResults({ channel }: { channel: string }) {
 										{product.name}
 									</h3>
 									<div className="flex items-center justify-between">
-										<span className="font-mono text-xs text-gray-400">
-											{product.category?.name || "Object"}
+										<span className="max-w-[60%] truncate font-mono text-xs text-gray-400">
+											{categoryName}
 										</span>
 										<span className="font-mono text-sm text-gray-900">{formatPrice(price)}</span>
 									</div>
@@ -210,12 +213,12 @@ function SearchContent() {
 					<div className="flex flex-col gap-8 lg:flex-row">
 						{/* --- SIDEBAR --- */}
 						<aside className="hidden w-64 shrink-0 lg:block">
-							{/* Updated top-20 to top-28 for more breathing room */}
 							<div className="sticky top-28 flex flex-col gap-8">
 								<div>
 									<h3 className="mb-3 font-serif text-sm font-bold uppercase tracking-wide">Categories</h3>
+									{/* FIX: Updated attribute to match Algolia dashboard ('categories' not 'category.name') */}
 									<RefinementList
-										attribute="category.name"
+										attribute="categories"
 										classNames={{
 											list: "space-y-2 font-mono text-xs text-gray-500",
 											item: "group",
