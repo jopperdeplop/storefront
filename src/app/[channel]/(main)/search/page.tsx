@@ -210,7 +210,8 @@ function SearchContent() {
 					<div className="flex flex-col gap-8 lg:flex-row">
 						{/* --- SIDEBAR --- */}
 						<aside className="hidden w-64 shrink-0 lg:block">
-							<div className="sticky top-48 flex flex-col gap-8">
+							{/* Updated top-20 to top-28 for more breathing room */}
+							<div className="sticky top-28 flex flex-col gap-8">
 								<div>
 									<h3 className="mb-3 font-serif text-sm font-bold uppercase tracking-wide">Categories</h3>
 									<RefinementList
