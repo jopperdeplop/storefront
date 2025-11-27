@@ -2,10 +2,10 @@ import { notFound } from "next/navigation";
 import { type ResolvingMetadata, type Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { ProductListByCategoryDocument } from "@/gql/graphql";
+import { ProductListByCollectionDocument } from "@/gql/graphql";
 import { executeGraphQL } from "@/lib/graphql";
 
-// --- FIX: Strict Types for EditorJS Content ---
+// --- Strict Types for EditorJS Content ---
 interface EditorJsBlock {
 	id: string;
 	type: string;
@@ -26,13 +26,13 @@ export const generateMetadata = async (
 	_parent: ResolvingMetadata,
 ): Promise<Metadata> => {
 	const params = await props.params;
-	const { category } = await executeGraphQL(ProductListByCategoryDocument, {
+	const { collection } = await executeGraphQL(ProductListByCollectionDocument, {
 		variables: { slug: params.slug, channel: params.channel },
 		revalidate: 60,
 	});
 	return {
-		title: `${category?.name || "Category"} | Euro-Standard`,
-		description: category?.seoDescription || category?.description,
+		title: `${collection?.name || "Collection"} | Euro-Standard`,
+		description: collection?.seoDescription || collection?.description,
 	};
 };
 
@@ -41,38 +41,40 @@ const formatPrice = (amount: number, currency: string) =>
 
 export default async function Page(props: { params: Promise<{ slug: string; channel: string }> }) {
 	const params = await props.params;
-	const { category } = await executeGraphQL(ProductListByCategoryDocument, {
+
+	const { collection } = await executeGraphQL(ProductListByCollectionDocument, {
 		variables: { slug: params.slug, channel: params.channel },
 		revalidate: 60,
 	});
 
-	if (!category || !category.products) {
+	if (!collection || !collection.products) {
 		notFound();
 	}
 
-	const { name, products, description } = category;
+	const { name, products, description } = collection;
 
-	// --- FIX: Safe JSON Parsing with Type Guard ---
+	// --- Safe JSON Parsing with Type Guard ---
 	let parsedContent: EditorJsContent | null = null;
 	if (description) {
 		try {
-			const parsed = JSON.parse(description) ;
+			const parsed = JSON.parse(description);
 			// Basic validation to ensure it matches the interface
 			if (typeof parsed === "object" && parsed !== null && "blocks" in parsed) {
 				parsedContent = parsed as EditorJsContent;
 			}
 		} catch (e) {
-			console.error("Failed to parse category description", e);
+			console.error("Failed to parse collection description", e);
 		}
 	}
 
 	return (
 		<div className="min-h-screen bg-stone-50 text-gray-900">
 			{/* --- HEADER: Editorial Style --- */}
-			<div className="sticky top-0 z-30 border-b border-stone-200 bg-white/95 backdrop-blur transition-all">
+			{/* CHANGED: Removed 'sticky top-0 z-30' and backdrop blur. It is now static. */}
+			<div className="border-b border-stone-200 bg-white transition-all">
 				<div className="mx-auto max-w-[1920px] px-4 py-6 md:px-8 md:py-8">
 					<span className="mb-2 block font-mono text-xs uppercase tracking-widest text-gray-400">
-						Category
+						Collection
 					</span>
 					<h1 className="font-serif text-3xl font-medium text-gray-900 md:text-5xl">{name}</h1>
 				</div>

@@ -66,7 +66,8 @@ export default async function Page(props: { params: Promise<{ slug: string; chan
 	return (
 		<div className="min-h-screen bg-stone-50 text-gray-900">
 			{/* --- HEADER: Editorial Style --- */}
-			<div className="sticky top-0 z-30 border-b border-stone-200 bg-white/95 backdrop-blur transition-all">
+			{/* CHANGED: Removed 'sticky top-0 z-30' and backdrop blur. It is now static. */}
+			<div className="border-b border-stone-200 bg-white transition-all">
 				<div className="mx-auto max-w-[1920px] px-4 py-6 md:px-8 md:py-8">
 					<span className="mb-2 block font-mono text-xs uppercase tracking-widest text-gray-400">
 						Category
