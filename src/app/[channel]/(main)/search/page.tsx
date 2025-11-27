@@ -69,10 +69,18 @@ function SearchResults({ channel }: { channel: string }) {
 			{hits.map((hit) => {
 				const product = hit as unknown as ProductHit;
 
+				// --- FIX: Image Logic ---
+				// 1. Try 'media' first (Full resolution image from Saleor)
+				// 2. Fallback to 'thumbnail' (Low res generated for search speed)
 				let imageUrl = "";
-				if (typeof product.thumbnail === "string") imageUrl = product.thumbnail;
-				else if (product.thumbnail?.url) imageUrl = product.thumbnail.url;
-				else if (product.media?.[0]?.url) imageUrl = product.media[0].url;
+
+				if (product.media && product.media.length > 0 && product.media[0].url) {
+					imageUrl = product.media[0].url;
+				} else if (typeof product.thumbnail === "string") {
+					imageUrl = product.thumbnail;
+				} else if (product.thumbnail?.url) {
+					imageUrl = product.thumbnail.url;
+				}
 
 				const price =
 					typeof product.grossPrice === "object" && product.grossPrice !== null
@@ -186,8 +194,8 @@ function SearchContent() {
 			>
 				<Configure query={query} hitsPerPage={20} />
 
-				{/* --- HEADER --- */}
-				<div className="sticky top-0 z-30 border-b border-stone-200 bg-white/95 backdrop-blur transition-all">
+				{/* --- HEADER (Updated: Removed sticky/fixed behavior) --- */}
+				<div className="border-b border-stone-200 bg-white transition-all">
 					<div className="mx-auto max-w-[1920px] px-4 py-6 md:px-8 md:py-8">
 						<span className="mb-2 block font-mono text-xs uppercase tracking-widest text-gray-400">
 							Search Results
