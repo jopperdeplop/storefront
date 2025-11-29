@@ -27,20 +27,30 @@ export default async function Page(props: { params: Promise<{ channel: string; l
 	// Convert URL locale (nl) to Saleor Enum (NL)
 	const localeEnum = params.locale.toUpperCase() as LanguageCodeEnum;
 
-	// Fetching the "Featured" collection
-	const data = await executeGraphQL(ProductListByCollectionDocument, {
-		variables: {
-			slug: "featured-products",
-			channel: params.channel,
-			// IMPORTANT: Update your GraphQL query to accept $locale
-			locale: localeEnum,
-		},
-		revalidate: 60,
-	});
+	let data = null;
 
-	if (!data.collection?.products) return null;
+	// --- FIX: Wrap data fetching in try/catch to prevent 500 Error crashes ---
+	try {
+		// Fetching the "Featured" collection
+		data = await executeGraphQL(ProductListByCollectionDocument, {
+			variables: {
+				slug: "featured-products",
+				channel: params.channel,
+				// IMPORTANT: Update your GraphQL query to accept $locale
+				locale: localeEnum,
+			},
+			revalidate: 60,
+		});
+	} catch (error) {
+		console.error("Homepage Product Fetch Failed:", error);
+		// Fallback to null so the page can still render the static parts
+	}
 
-	const allProducts = data.collection?.products.edges.map(({ node }) => node);
+	// If fetch failed or no products, we handle it gracefully below
+	// We use optional chaining (data?.) to prevent crashes if data is null from the catch block
+	const productsExists = data?.collection?.products?.edges;
+	// Fix: Use productsExists directly to map, avoiding unsafe access on 'data' which TS thinks might be null
+	const allProducts = productsExists ? productsExists.map(({ node }) => node) : [];
 
 	// STRATEGY: Split data for "Spotlight" vs "Grid"
 	const spotlightProducts = allProducts.slice(0, 4);
@@ -86,65 +96,67 @@ export default async function Page(props: { params: Promise<{ channel: string; l
 				</div>
 			</section>
 			{/* --- PLAN SECTION 6.3: "New Arrivals from [Country]" Module --- */}
-			<section className="mx-auto max-w-[1920px] px-4 py-16 md:px-8">
-				<div className="mb-10 flex items-end justify-between border-b border-gray-200 pb-4">
-					<div>
-						<span className="font-mono text-xs uppercase text-gray-500">Curated Selection</span>
-						<h2 className="font-serif text-3xl text-gray-900 md:text-4xl">Focus on Portugal</h2>
+			{spotlightProducts.length > 0 && (
+				<section className="mx-auto max-w-[1920px] px-4 py-16 md:px-8">
+					<div className="mb-10 flex items-end justify-between border-b border-gray-200 pb-4">
+						<div>
+							<span className="font-mono text-xs uppercase text-gray-500">Curated Selection</span>
+							<h2 className="font-serif text-3xl text-gray-900 md:text-4xl">Focus on Portugal</h2>
+						</div>
+						<Link
+							// UPDATED: Include locale
+							href={`/${params.channel}/${params.locale}/products`}
+							className="hidden font-mono text-xs uppercase tracking-wide underline md:block"
+						>
+							View All Arrivals
+						</Link>
 					</div>
-					<Link
-						// UPDATED: Include locale
-						href={`/${params.channel}/${params.locale}/products`}
-						className="hidden font-mono text-xs uppercase tracking-wide underline md:block"
-					>
-						View All Arrivals
-					</Link>
-				</div>
 
-				<div className="grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-8">
-					{spotlightProducts.map((product) => {
-						// FIX: Safe Type Casting
-						const productWithTranslation = product as typeof product & WithTranslation;
+					<div className="grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-8">
+						{spotlightProducts.map((product) => {
+							// FIX: Safe Type Casting
+							const productWithTranslation = product as typeof product & WithTranslation;
 
-						return (
-							<Link
-								key={product.id}
-								// UPDATED: Include locale
-								href={`/${params.channel}/${params.locale}/products/${product.slug}`}
-								className="group block"
-							>
-								<div className="relative aspect-[4/5] overflow-hidden bg-gray-100">
-									{product.thumbnail && (
-										<Image
-											src={product.thumbnail.url}
-											alt={product.thumbnail.alt || product.name}
-											fill
-											className="object-cover transition-transform duration-700 group-hover:scale-105"
-											sizes="(max-width: 768px) 50vw, 25vw"
-										/>
-									)}
-									{/* Adaptive Trust Badge */}
-									<div className="absolute left-2 top-2 bg-white/90 px-2 py-1 font-mono text-[10px] uppercase tracking-wider backdrop-blur-sm">
-										Direct from Atelier
-									</div>
-								</div>
-								<div className="mt-4">
-									{/* UPDATED: Translation Fallback */}
-									<h3 className="font-serif text-lg leading-none group-hover:underline">
-										{productWithTranslation.translation?.name || product.name}
-									</h3>
-									<p className="mt-1 font-mono text-xs text-gray-500">
-										{formatPrice(
-											product.pricing?.priceRange?.start?.gross.amount || 0,
-											product.pricing?.priceRange?.start?.gross.currency || "EUR",
+							return (
+								<Link
+									key={product.id}
+									// UPDATED: Include locale
+									href={`/${params.channel}/${params.locale}/products/${product.slug}`}
+									className="group block"
+								>
+									<div className="relative aspect-[4/5] overflow-hidden bg-gray-100">
+										{product.thumbnail && (
+											<Image
+												src={product.thumbnail.url}
+												alt={product.thumbnail.alt || product.name}
+												fill
+												className="object-cover transition-transform duration-700 group-hover:scale-105"
+												sizes="(max-width: 768px) 50vw, 25vw"
+											/>
 										)}
-									</p>
-								</div>
-							</Link>
-						);
-					})}
-				</div>
-			</section>
+										{/* Adaptive Trust Badge */}
+										<div className="absolute left-2 top-2 bg-white/90 px-2 py-1 font-mono text-[10px] uppercase tracking-wider backdrop-blur-sm">
+											Direct from Atelier
+										</div>
+									</div>
+									<div className="mt-4">
+										{/* UPDATED: Translation Fallback */}
+										<h3 className="font-serif text-lg leading-none group-hover:underline">
+											{productWithTranslation.translation?.name || product.name}
+										</h3>
+										<p className="mt-1 font-mono text-xs text-gray-500">
+											{formatPrice(
+												product.pricing?.priceRange?.start?.gross.amount || 0,
+												product.pricing?.priceRange?.start?.gross.currency || "EUR",
+											)}
+										</p>
+									</div>
+								</Link>
+							);
+						})}
+					</div>
+				</section>
+			)}
 			{/* --- PLAN SECTION 6.3: The "Spotlight" Block (Editorial Interruption) --- */}
 			<section className="bg-stone-100 py-20">
 				<div className="mx-auto grid max-w-[1920px] grid-cols-1 md:grid-cols-2">
@@ -211,73 +223,75 @@ export default async function Page(props: { params: Promise<{ channel: string; l
 				</div>
 			</section>
 			{/* --- PLAN SECTION 6.2: The "Broken Grid" / Editorial Collection --- */}
-			<section className="mx-auto max-w-[1920px] px-4 py-20 md:px-8">
-				<div className="mb-12 text-center">
-					<h2 className="font-serif text-4xl">The Edit</h2>
-					<p className="mt-2 font-mono text-xs text-gray-500">
-						Sustainable oak and walnut pieces from independent workshops.
-					</p>
-				</div>
+			{mainFeed.length > 0 && (
+				<section className="mx-auto max-w-[1920px] px-4 py-20 md:px-8">
+					<div className="mb-12 text-center">
+						<h2 className="font-serif text-4xl">The Edit</h2>
+						<p className="mt-2 font-mono text-xs text-gray-500">
+							Sustainable oak and walnut pieces from independent workshops.
+						</p>
+					</div>
 
-				<div className="grid grid-cols-1 gap-px bg-gray-200 sm:grid-cols-2 lg:grid-cols-4">
-					{mainFeed.map((product, index) => {
-						// "Broken Grid" logic: Make some items span 2 cols
-						const isHero = index === 0 || index === 5;
+					<div className="grid grid-cols-1 gap-px bg-gray-200 sm:grid-cols-2 lg:grid-cols-4">
+						{mainFeed.map((product, index) => {
+							// "Broken Grid" logic: Make some items span 2 cols
+							const isHero = index === 0 || index === 5;
 
-						// FIX: Safe Type Casting
-						const productWithTranslation = product as typeof product & WithTranslation;
+							// FIX: Safe Type Casting
+							const productWithTranslation = product as typeof product & WithTranslation;
 
-						return (
-							<Link
-								key={product.id}
-								// UPDATED: Include locale
-								href={`/${params.channel}/${params.locale}/products/${product.slug}`}
-								className={`group relative bg-white p-4 transition-all hover:z-10 ${
-									isHero ? "aspect-square md:col-span-2 md:row-span-2" : "aspect-[3/4] md:col-span-1"
-								}`}
-							>
-								<div className="relative h-full w-full overflow-hidden">
-									{product.thumbnail && (
-										<Image
-											src={product.thumbnail.url}
-											alt={product.thumbnail.alt || product.name}
-											fill
-											className="object-cover transition-transform duration-700 group-hover:scale-105"
-											sizes={isHero ? "50vw" : "25vw"}
-										/>
-									)}
+							return (
+								<Link
+									key={product.id}
+									// UPDATED: Include locale
+									href={`/${params.channel}/${params.locale}/products/${product.slug}`}
+									className={`group relative bg-white p-4 transition-all hover:z-10 ${
+										isHero ? "aspect-square md:col-span-2 md:row-span-2" : "aspect-[3/4] md:col-span-1"
+									}`}
+								>
+									<div className="relative h-full w-full overflow-hidden">
+										{product.thumbnail && (
+											<Image
+												src={product.thumbnail.url}
+												alt={product.thumbnail.alt || product.name}
+												fill
+												className="object-cover transition-transform duration-700 group-hover:scale-105"
+												sizes={isHero ? "50vw" : "25vw"}
+											/>
+										)}
 
-									{/* Hover Overlay with Editorial Vibe */}
-									<div className="absolute inset-0 flex flex-col justify-end bg-black/0 p-6 transition-colors group-hover:bg-black/10">
-										<div className="translate-y-4 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
-											<span className="bg-white px-2 py-1 font-mono text-xs uppercase text-black shadow-sm">
-												Shop Now
-											</span>
+										{/* Hover Overlay with Editorial Vibe */}
+										<div className="absolute inset-0 flex flex-col justify-end bg-black/0 p-6 transition-colors group-hover:bg-black/10">
+											<div className="translate-y-4 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+												<span className="bg-white px-2 py-1 font-mono text-xs uppercase text-black shadow-sm">
+													Shop Now
+												</span>
+											</div>
 										</div>
 									</div>
-								</div>
 
-								{/* Minimalist Info below image */}
-								<div className="mt-4 flex items-baseline justify-between">
-									<div>
-										{/* UPDATED: Translation Fallback */}
-										<h3 className="font-serif text-lg font-medium">
-											{productWithTranslation.translation?.name || product.name}
-										</h3>
-										<p className="font-mono text-xs text-gray-400">{product.category?.name}</p>
+									{/* Minimalist Info below image */}
+									<div className="mt-4 flex items-baseline justify-between">
+										<div>
+											{/* UPDATED: Translation Fallback */}
+											<h3 className="font-serif text-lg font-medium">
+												{productWithTranslation.translation?.name || product.name}
+											</h3>
+											<p className="font-mono text-xs text-gray-400">{product.category?.name}</p>
+										</div>
+										<span className="font-mono text-sm">
+											{formatPrice(
+												product.pricing?.priceRange?.start?.gross.amount || 0,
+												product.pricing?.priceRange?.start?.gross.currency || "EUR",
+											)}
+										</span>
 									</div>
-									<span className="font-mono text-sm">
-										{formatPrice(
-											product.pricing?.priceRange?.start?.gross.amount || 0,
-											product.pricing?.priceRange?.start?.gross.currency || "EUR",
-										)}
-									</span>
-								</div>
-							</Link>
-						);
-					})}
-				</div>
-			</section>
+								</Link>
+							);
+						})}
+					</div>
+				</section>
+			)}
 		</main>
 	);
 }
