@@ -32,7 +32,8 @@ export const Nav = ({ channel, locale }: { channel: string; locale: string }) =>
 				{/* Cart Icon */}
 				<div className="flex items-center">
 					<Suspense fallback={<div className="h-6 w-6" />}>
-						<CartNavItem channel={channel} />
+						{/* Fixed: Added locale prop to CartNavItem */}
+						<CartNavItem channel={channel} locale={locale} />
 					</Suspense>
 				</div>
 			</div>
