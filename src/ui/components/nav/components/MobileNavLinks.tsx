@@ -4,14 +4,21 @@ import { executeGraphQL } from "@/lib/graphql";
 import { MenuGetBySlugDocument, type LanguageCodeEnum } from "@/gql/graphql";
 
 export const MobileNavLinks = async ({ channel, locale }: { channel: string; locale: string }) => {
-	const navLinks = await executeGraphQL(MenuGetBySlugDocument, {
-		variables: {
-			slug: "navbar",
-			channel,
-			locale: locale.toUpperCase() as LanguageCodeEnum,
-		},
-		revalidate: 60 * 60, // 1 hour
-	});
+	let navLinks = null;
+
+	try {
+		navLinks = await executeGraphQL(MenuGetBySlugDocument, {
+			variables: {
+				slug: "navbar",
+				channel,
+				locale: locale.toUpperCase() as LanguageCodeEnum,
+			},
+			revalidate: 60 * 60, // 1 hour
+		});
+	} catch (error) {
+		console.error("Failed to fetch MobileNavLinks:", error);
+		return null;
+	}
 
 	return (
 		<>
@@ -21,7 +28,7 @@ export const MobileNavLinks = async ({ channel, locale }: { channel: string; loc
 			</div>
 
 			{/* Dynamic Menu Items */}
-			{navLinks.menu?.items?.map((item) => <NavItem key={item.id} item={item} channel={channel} />)}
+			{navLinks?.menu?.items?.map((item) => <NavItem key={item.id} item={item} channel={channel} />)}
 		</>
 	);
 };

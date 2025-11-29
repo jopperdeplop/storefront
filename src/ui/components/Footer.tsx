@@ -6,23 +6,36 @@ import { ChannelsListDocument, MenuGetBySlugDocument, type LanguageCodeEnum } fr
 import { executeGraphQL } from "@/lib/graphql";
 
 export async function Footer({ channel, locale }: { channel: string; locale: string }) {
-	const footerLinks = await executeGraphQL(MenuGetBySlugDocument, {
-		variables: {
-			slug: "footer",
-			channel,
-			locale: locale.toUpperCase() as LanguageCodeEnum,
-		},
-		revalidate: 60 * 60 * 24,
-	});
+	let footerLinks = null;
+	let channels = null;
 
-	const channels = process.env.SALEOR_APP_TOKEN
-		? await executeGraphQL(ChannelsListDocument, {
-				withAuth: false,
-				headers: {
-					Authorization: `Bearer ${process.env.SALEOR_APP_TOKEN}`,
-				},
-			})
-		: null;
+	try {
+		const footerPromise = executeGraphQL(MenuGetBySlugDocument, {
+			variables: {
+				slug: "footer",
+				channel,
+				locale: locale.toUpperCase() as LanguageCodeEnum,
+			},
+			revalidate: 60 * 60 * 24,
+		});
+
+		const channelsPromise = process.env.SALEOR_APP_TOKEN
+			? executeGraphQL(ChannelsListDocument, {
+					withAuth: false,
+					headers: {
+						Authorization: `Bearer ${process.env.SALEOR_APP_TOKEN}`,
+					},
+				})
+			: Promise.resolve(null);
+
+		const [footerResult, channelsResult] = await Promise.all([footerPromise, channelsPromise]);
+		footerLinks = footerResult;
+		channels = channelsResult;
+	} catch (error) {
+		console.error("Failed to fetch Footer data:", error);
+		// We continue rendering the static parts of the footer even if API fails
+	}
+
 	const currentYear = new Date().getFullYear();
 
 	return (
@@ -30,7 +43,7 @@ export async function Footer({ channel, locale }: { channel: string; locale: str
 			<div className="mx-auto max-w-[1920px] px-4 lg:px-8">
 				{/* --- LINKS GRID --- */}
 				<div className="mb-20 grid grid-cols-2 gap-12 md:grid-cols-4">
-					{footerLinks.menu?.items?.map((item) => (
+					{footerLinks?.menu?.items?.map((item) => (
 						<div key={item.id}>
 							<h3 className="mb-6 font-serif text-lg font-medium text-gray-900">{item.name}</h3>
 							<ul className="space-y-4">
