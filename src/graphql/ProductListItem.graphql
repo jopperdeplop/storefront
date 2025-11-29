@@ -10,12 +10,6 @@ fragment ProductListItem on Product {
 					currency
 				}
 			}
-			stop {
-				gross {
-					amount
-					currency
-				}
-			}
 		}
 	}
 	category {
@@ -25,5 +19,10 @@ fragment ProductListItem on Product {
 	thumbnail(size: 1024, format: WEBP) {
 		url
 		alt
+	}
+	# --- NEW: Translation ---
+	translation(languageCode: $locale) {
+		name
+		description
 	}
 }

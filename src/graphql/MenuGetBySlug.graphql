@@ -18,9 +18,13 @@ fragment MenuItem on MenuItem {
 		slug
 	}
 	url
+	# --- NEW: Menu Item Translation ---
+	translation(languageCode: $locale) {
+		name
+	}
 }
 
-query MenuGetBySlug($slug: String!, $channel: String!) {
+query MenuGetBySlug($slug: String!, $channel: String!, $locale: LanguageCodeEnum!) {
 	menu(slug: $slug, channel: $channel) {
 		items {
 			...MenuItem

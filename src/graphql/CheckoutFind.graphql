@@ -23,6 +23,7 @@ query CheckoutFind($id: ID!) {
 					category {
 						name
 					}
+					# Translation removed to prevent 500 Server Error
 				}
 				pricing {
 					price {

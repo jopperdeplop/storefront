@@ -7,19 +7,20 @@ import { MobileNavLinks } from "./components/MobileNavLinks";
 import { MobileMenu } from "./components/MobileMenu";
 import { SearchBar } from "./components/SearchBar";
 
-export const Nav = ({ channel }: { channel: string }) => {
+// Updated to accept locale to keep previous translation fixes working
+export const Nav = ({ channel, locale }: { channel: string; locale: string }) => {
 	return (
 		<nav className="flex w-full items-center gap-4 lg:gap-6" aria-label="Main navigation">
 			{/* Desktop Navigation Links (Standard links, no plus icons) */}
 			<ul className="hidden gap-6 overflow-x-auto whitespace-nowrap md:flex lg:gap-8 lg:px-0">
-				<NavLinks channel={channel} />
+				<NavLinks channel={channel} locale={locale} />
 			</ul>
 
 			{/* Right Side Actions (Search, User, Cart) */}
 			<div className="ml-auto flex items-center gap-4 lg:gap-8">
 				{/* Search Bar (Desktop) */}
 				<div className="hidden min-w-[300px] lg:flex">
-					{/* FIXED: Removed channel prop */}
+					{/* FIXED: Removed channel prop as requested */}
 					<SearchBar />
 				</div>
 
@@ -42,7 +43,7 @@ export const Nav = ({ channel }: { channel: string }) => {
 					{/* FIXED: Removed channel prop */}
 					<SearchBar />
 					{/* UPDATED: Use MobileNavLinks here to get the dropdowns/plus icons */}
-					<MobileNavLinks channel={channel} />
+					<MobileNavLinks channel={channel} locale={locale} />
 				</MobileMenu>
 			</Suspense>
 		</nav>

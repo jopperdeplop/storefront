@@ -1,9 +1,16 @@
-query ProductListByCollection($slug: String!, $channel: String!) {
+query ProductListByCollection($slug: String!, $channel: String!, $locale: LanguageCodeEnum!) {
 	collection(slug: $slug, channel: $channel) {
 		name
 		description
 		seoDescription
 		seoTitle
+		# --- NEW: Collection Translation ---
+		translation(languageCode: $locale) {
+			name
+			description
+			seoDescription
+			seoTitle
+		}
 		products(first: 100) {
 			edges {
 				node {
