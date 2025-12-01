@@ -4,15 +4,24 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { type ComponentProps } from "react";
 
+interface LinkWithChannelProps extends Omit<ComponentProps<typeof Link>, "href"> {
+	href: string;
+	channel?: string;
+	locale?: string;
+}
+
 export const LinkWithChannel = ({
 	href,
+	channel: channelProp,
+	locale: localeProp,
 	...props
-}: Omit<ComponentProps<typeof Link>, "href"> & { href: string }) => {
+}: LinkWithChannelProps) => {
 	const params = useParams();
 
-	// 1. Safety Checks: Ensure channel and locale exist, or fallback to defaults
-	const channel = typeof params?.channel === "string" ? params.channel : "default-channel";
-	const locale = typeof params?.locale === "string" ? params.locale : "en";
+	// 1. Priority: Override Prop > URL Param > Default Fallback
+	// This ensures that if you are on /eur/nl, it persists 'nl'.
+	const channel = channelProp || (typeof params?.channel === "string" ? params.channel : "eur");
+	const locale = localeProp || (typeof params?.locale === "string" ? params.locale : "en");
 
 	// 2. External Links: Don't modify them
 	if (!href.startsWith("/")) {
@@ -20,7 +29,6 @@ export const LinkWithChannel = ({
 	}
 
 	// 3. Construct the Path
-	// We want: /[channel]/[locale]/[href]
 	// Example: /eur/nl/cart
 	const hrefWithChannel = `/${channel}/${locale}${href}`;
 
