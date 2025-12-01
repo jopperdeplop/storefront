@@ -13,7 +13,7 @@ import { formatMoney, formatMoneyRange } from "@/lib/utils";
 import {
 	CheckoutAddLineDocument,
 	ProductDetailsDocument,
-	// ProductListDocument, // REMOVED: No longer needed for static params
+	// ProductListDocument, // REMOVED: No longer needed
 	type LanguageCodeEnum,
 } from "@/gql/graphql";
 import * as Checkout from "@/lib/checkout";
@@ -91,9 +91,9 @@ export async function generateMetadata(
 }
 
 // REMOVED: generateStaticParams
-// This function forced static generation, which conflicts with the dynamic
-// cookie access in CartNavItem and UserMenuContainer. Removing it enables
-// Dynamic Rendering (SSR) for product pages.
+// This function was causing the "Dynamic server usage" error because it forces
+// static generation on a page that depends on dynamic cookies (in the Navbar).
+// Removing it enables Dynamic Rendering (SSR), which fixes the crash.
 
 const parser = edjsHTML();
 
