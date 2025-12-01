@@ -13,7 +13,7 @@ import { formatMoney, formatMoneyRange } from "@/lib/utils";
 import {
 	CheckoutAddLineDocument,
 	ProductDetailsDocument,
-	ProductListDocument,
+	// ProductListDocument, // REMOVED: No longer needed for static params
 	type LanguageCodeEnum,
 } from "@/gql/graphql";
 import * as Checkout from "@/lib/checkout";
@@ -90,26 +90,10 @@ export async function generateMetadata(
 	};
 }
 
-// --- FIX: Added safety check for missing params ---
-export async function generateStaticParams({ params }: { params: { channel: string; locale: string } }) {
-	// Guard clause: If locale or channel is missing (during build tree traversal), return empty array.
-	if (!params?.channel || !params?.locale) {
-		return [];
-	}
-
-	const { products } = await executeGraphQL(ProductListDocument, {
-		revalidate: 60,
-		variables: {
-			first: 20,
-			channel: params.channel,
-			locale: params.locale.toUpperCase() as LanguageCodeEnum,
-		},
-		withAuth: false,
-	});
-
-	const paths = products?.edges.map(({ node: { slug } }) => ({ slug })) || [];
-	return paths;
-}
+// REMOVED: generateStaticParams
+// This function forced static generation, which conflicts with the dynamic
+// cookie access in CartNavItem and UserMenuContainer. Removing it enables
+// Dynamic Rendering (SSR) for product pages.
 
 const parser = edjsHTML();
 
@@ -140,7 +124,7 @@ export default async function Page(props: {
 	const rawDescription = productSafe.translation?.description || product.description;
 
 	// Fix: Parse description safely. rawDescription is strictly typed as string | null/undefined now.
-	const description = rawDescription ? (parser.parse(JSON.parse(rawDescription)) ) : null;
+	const description = rawDescription ? parser.parse(JSON.parse(rawDescription)) : null;
 
 	const variants = product.variants;
 	const selectedVariantID = searchParams.variant;
@@ -333,7 +317,7 @@ export default async function Page(props: {
 										/>
 									</div>
 								)}
-								{/* Trust Badge: Cleaned to remove artifacts [cite: 104-106] */}
+								{/* Trust Badge: Cleaned to remove artifacts */}
 								<div className="mb-8 rounded border border-gray-200 bg-white p-4">
 									<ul className="space-y-2 text-xs">
 										<li className="flex items-center gap-2">
