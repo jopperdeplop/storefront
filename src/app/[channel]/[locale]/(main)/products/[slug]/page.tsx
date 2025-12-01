@@ -314,6 +314,7 @@ export default async function Page(props: {
 											variants={variants}
 											product={product}
 											channel={params.channel}
+											locale={localeEnum}
 										/>
 									</div>
 								)}

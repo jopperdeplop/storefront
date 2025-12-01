@@ -9,14 +9,24 @@ export function VariantSelector({
 	product,
 	selectedVariant,
 	channel,
+	locale, // <--- 1. Accept locale prop
 }: {
 	variants: readonly VariantDetailsFragment[];
 	product: ProductListItemFragment;
 	selectedVariant?: VariantDetailsFragment;
 	channel: string;
+	locale: string; // <--- 2. Add type definition
 }) {
+	// Auto-redirect for single-variant products
 	if (!selectedVariant && variants.length === 1 && variants[0]?.quantityAvailable) {
-		redirect("/" + channel + getHrefForVariant({ productSlug: product.slug, variantId: variants[0].id }));
+		// 3. FIX: Include 'locale' in the redirect path
+		redirect(
+			"/" +
+				channel +
+				"/" +
+				locale +
+				getHrefForVariant({ productSlug: product.slug, variantId: variants[0].id }),
+		);
 	}
 
 	return (
