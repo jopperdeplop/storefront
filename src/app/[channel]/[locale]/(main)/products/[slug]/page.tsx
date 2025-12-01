@@ -10,12 +10,7 @@ import { AddButton } from "./AddButton";
 import { VariantSelector } from "@/ui/components/VariantSelector";
 import { executeGraphQL } from "@/lib/graphql";
 import { formatMoney, formatMoneyRange } from "@/lib/utils";
-import {
-	CheckoutAddLineDocument,
-	ProductDetailsDocument,
-	// ProductListDocument, // REMOVED: No longer needed
-	type LanguageCodeEnum,
-} from "@/gql/graphql";
+import { CheckoutAddLineDocument, ProductDetailsDocument, type LanguageCodeEnum } from "@/gql/graphql";
 import * as Checkout from "@/lib/checkout";
 
 // --- FIX: Safe Type Extensions ---
@@ -59,9 +54,7 @@ export async function generateMetadata(
 		notFound();
 	}
 
-	// Fix: Cast with translation interface to avoid 'any'
 	const productWithTranslation = product as typeof product & WithTranslation;
-
 	const productName = productWithTranslation.translation?.name || product.seoTitle || product.name;
 	const variantName = product.variants?.find(({ id }) => id === searchParams.variant)?.name;
 	const productNameAndVariant = variantName ? `${productName} - ${variantName}` : productName;
@@ -90,11 +83,6 @@ export async function generateMetadata(
 	};
 }
 
-// REMOVED: generateStaticParams
-// This function was causing the "Dynamic server usage" error because it forces
-// static generation on a page that depends on dynamic cookies (in the Navbar).
-// Removing it enables Dynamic Rendering (SSR), which fixes the crash.
-
 const parser = edjsHTML();
 
 export default async function Page(props: {
@@ -117,13 +105,9 @@ export default async function Page(props: {
 		notFound();
 	}
 
-	// Fix: Safe casting with interfaces
 	const productSafe = product as typeof product & WithTranslation & WithMedia;
-
 	const productName = productSafe.translation?.name || product.name;
 	const rawDescription = productSafe.translation?.description || product.description;
-
-	// Fix: Parse description safely. rawDescription is strictly typed as string | null/undefined now.
 	const description = rawDescription ? parser.parse(JSON.parse(rawDescription)) : null;
 
 	const variants = product.variants;
@@ -149,13 +133,11 @@ export default async function Page(props: {
 			variables: {
 				id: checkout.id,
 				productVariantId: decodeURIComponent(selectedVariantID),
-				// FIX: Pass locale to mutation
 				locale: localeEnum,
 			},
 			cache: "no-cache",
 		});
 
-		// FIX: Revalidate the localized cart path
 		revalidatePath(`/${params.channel}/${params.locale}/cart`);
 	}
 
@@ -170,7 +152,6 @@ export default async function Page(props: {
 				})
 			: "";
 
-	// FIX: Removed invalid bracket syntax inside the object
 	const productJsonLd: WithContext<Product> = {
 		"@context": "https://schema.org",
 		"@type": "Product",
@@ -203,10 +184,7 @@ export default async function Page(props: {
 				}),
 	};
 
-	// --- FIX: Handle Media Safety ---
-	// Using safe cast 'productSafe' which has WithMedia interface
 	const hasMedia = Array.isArray(productSafe.media) && productSafe.media.length > 0;
-
 	const images: ProductImage[] = hasMedia
 		? (productSafe.media as ProductImage[])
 		: product.thumbnail
@@ -223,25 +201,19 @@ export default async function Page(props: {
 			/>
 
 			<form action={addItem} className="h-full">
-				{/* --- PLAN SECTION 6.1: Context-Aware Layout (Split Screen) --- */}
 				<div className="mx-auto max-w-[1920px] md:grid md:min-h-screen md:grid-cols-12 md:gap-0">
 					{/* --- LEFT: The Visual & Story (60%) --- */}
 					<div className="border-r border-gray-200 bg-white md:col-span-7 lg:col-span-8">
-						{/* Carousel / Image Stack */}
 						<div className="flex flex-col">
 							{images.map((img, idx) => (
 								<div
 									key={idx}
-									// UPDATED: Fixed height relative to viewport (85vh) to ensure it fits above the fold.
-									// On mobile, we keep a generous square/rect height.
 									className="relative flex h-[50vh] w-full items-center justify-center border-b border-gray-100 last:border-0 md:h-[85vh]"
 								>
 									<Image
 										src={img.url}
 										alt={img.alt || productName}
 										fill
-										// UPDATED: 'object-contain' ensures the WHOLE product is seen without cropping
-										// Added padding (p-8) so it breathes and doesn't touch the edges.
 										className="object-contain p-8"
 										sizes="(max-width: 768px) 100vw, 60vw"
 										priority={idx === 0}
@@ -250,7 +222,6 @@ export default async function Page(props: {
 							))}
 						</div>
 
-						{/* --- PLAN SECTION 6.1: The "Deep Dive" (Below Fold) --- */}
 						<div className="max-w-4xl px-6 py-16 md:px-20 md:py-24">
 							<span className="mb-4 block font-mono text-xs uppercase tracking-widest text-terracotta">
 								The Origin Story
@@ -265,7 +236,6 @@ export default async function Page(props: {
 								</div>
 							)}
 
-							{/* Static "Material Standard" reinforcement if no description exists */}
 							{!description && (
 								<p className="text-lg leading-relaxed text-gray-600">
 									This product adheres to the Salp Euro-Standard certification for authentic craftsmanship.
@@ -278,10 +248,9 @@ export default async function Page(props: {
 					{/* --- RIGHT: Purchase & Context Rail (40% - Sticky) --- */}
 					<div className="relative bg-stone-50 md:col-span-5 lg:col-span-4">
 						<div className="flex flex-col justify-between px-6 py-8 md:sticky md:top-0 md:h-screen md:overflow-y-auto md:px-12 md:py-16">
-							{/* Top Element: Brand Context */}
 							<div className="mb-8">
 								<div className="mb-6 flex items-center gap-3">
-									<div className="h-8 w-8 rounded-full bg-gray-200"></div> {/* Logo Placeholder */}
+									<div className="h-8 w-8 rounded-full bg-gray-200"></div>
 									<span className="font-mono text-xs uppercase tracking-wide text-gray-500">
 										Established 2025 • Europe
 									</span>
@@ -295,11 +264,9 @@ export default async function Page(props: {
 								</p>
 							</div>
 
-							{/* Middle: Price & Selectors */}
 							<div className="mb-auto">
 								<div className="mb-8 flex items-baseline gap-4 border-b border-gray-200 pb-8">
 									<span className="text-2xl font-medium text-gray-900">{price}</span>
-									{/* Custom Availability Indicator */}
 									{isAvailable && (
 										<span className="flex items-center gap-2 font-mono text-xs text-emerald-600">
 											<span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
@@ -314,11 +281,11 @@ export default async function Page(props: {
 											variants={variants}
 											product={product}
 											channel={params.channel}
-											locale={localeEnum}
+											// FIX: Pass the lowercase URL param, NOT the Uppercase Enum
+											locale={params.locale}
 										/>
 									</div>
 								)}
-								{/* Trust Badge: Cleaned to remove artifacts */}
 								<div className="mb-8 rounded border border-gray-200 bg-white p-4">
 									<ul className="space-y-2 text-xs">
 										<li className="flex items-center gap-2">
@@ -329,7 +296,6 @@ export default async function Page(props: {
 										</li>
 									</ul>
 								</div>
-								{/* Desktop Add Button - Styled for Terracotta */}
 								<div className="hidden md:block [&>button]:h-14 [&>button]:w-full [&>button]:bg-terracotta [&>button]:font-bold [&>button]:uppercase [&>button]:tracking-widest [&>button]:text-white [&>button]:transition-all [&>button]:hover:bg-terracotta-dark">
 									<AddButton disabled={!selectedVariantID || !selectedVariant?.quantityAvailable} />
 								</div>
@@ -343,7 +309,6 @@ export default async function Page(props: {
 					</div>
 				</div>
 
-				{/* --- MOBILE FLOATING DOCK --- */}
 				<div className="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-200 bg-white p-4 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] md:hidden">
 					<div className="flex items-center gap-4">
 						<div className="flex flex-shrink-0 flex-col">
