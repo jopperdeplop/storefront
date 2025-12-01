@@ -4,14 +4,22 @@ import { ProductImageWrapper } from "@/ui/atoms/ProductImageWrapper";
 import type { ProductListItemFragment } from "@/gql/graphql";
 import { formatMoneyRange } from "@/lib/utils";
 
+// Update props interface to include channel and locale
 export function ProductElement({
 	product,
 	loading,
 	priority,
-}: { product: ProductListItemFragment } & { loading: "eager" | "lazy"; priority?: boolean }) {
+	channel,
+	locale,
+}: {
+	product: ProductListItemFragment;
+	channel?: string;
+	locale?: string;
+} & { loading: "eager" | "lazy"; priority?: boolean }) {
 	return (
 		<li data-testid="ProductElement">
-			<LinkWithChannel href={`/products/${product.slug}`} key={product.id}>
+			{/* Pass channel and locale explicitly to the link */}
+			<LinkWithChannel href={`/products/${product.slug}`} key={product.id} channel={channel} locale={locale}>
 				<div>
 					{product?.thumbnail?.url && (
 						<ProductImageWrapper
@@ -34,7 +42,6 @@ export function ProductElement({
 						<p className="mt-1 text-sm font-medium text-neutral-900" data-testid="ProductElement_PriceRange">
 							{formatMoneyRange({
 								start: product?.pricing?.priceRange?.start?.gross,
-								// stop: product?.pricing?.priceRange?.stop?.gross, // Removed: 'stop' is not available in the fragment
 							})}
 						</p>
 					</div>

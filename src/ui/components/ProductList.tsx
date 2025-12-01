@@ -1,7 +1,15 @@
 import { ProductElement } from "./ProductElement";
 import { type ProductListItemFragment } from "@/gql/graphql";
 
-export const ProductList = ({ products }: { products: readonly ProductListItemFragment[] }) => {
+export const ProductList = ({
+	products,
+	channel,
+	locale,
+}: {
+	products: readonly ProductListItemFragment[];
+	channel?: string;
+	locale?: string;
+}) => {
 	return (
 		<ul
 			role="list"
@@ -14,6 +22,9 @@ export const ProductList = ({ products }: { products: readonly ProductListItemFr
 					product={product}
 					priority={index < 2}
 					loading={index < 3 ? "eager" : "lazy"}
+					// Pass the context down
+					channel={channel}
+					locale={locale}
 				/>
 			))}
 		</ul>
