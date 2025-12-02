@@ -1,0 +1,42 @@
+query HomepageContent($channel: String!, $locale: LanguageCodeEnum!) {
+	hero: page(slug: "home-hero") {
+		title
+		content
+		translation(languageCode: $locale) {
+			title
+			content
+		}
+		# --- FIX: Use 'value' instead of 'file' ---
+		heroImage: assignedAttribute(slug: "hero-image") {
+			... on AssignedFileAttribute {
+				value {
+					url
+				}
+			}
+		}
+	}
+
+	# ... (keep the rest of the file exactly the same)
+	spotlight: page(slug: "home-spotlight") {
+		title
+		content
+		translation(languageCode: $locale) {
+			title
+			content
+		}
+	}
+
+	featured: collection(slug: "featured-products", channel: $channel) {
+		name
+		translation(languageCode: $locale) {
+			name
+		}
+		products(first: 4) {
+			edges {
+				node {
+					...ProductListItem
+				}
+			}
+		}
+	}
+}

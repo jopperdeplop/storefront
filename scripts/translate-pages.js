@@ -21,7 +21,6 @@ const TARGET_LANGUAGES = [
 	"MT",
 ];
 
-// Map codes to full names to ensure accurate translation
 const LANGUAGE_NAMES = {
 	NL: "Dutch",
 	DE: "German",
@@ -58,9 +57,7 @@ const saleor = createClient({
 	preferGetMethod: false,
 	fetchOptions: {
 		method: "POST",
-		headers: {
-			Authorization: `Bearer ${SALEOR_APP_TOKEN}`,
-		},
+		headers: { Authorization: `Bearer ${SALEOR_APP_TOKEN}` },
 	},
 	exchanges: [fetchExchange],
 });
@@ -69,19 +66,21 @@ const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({
 	model: GEMINI_MODEL_NAME,
 	generationConfig: { responseMimeType: "application/json" },
-	apiVersion: "v1beta",
 });
 
-// --- GRAPHQL ---
-const GET_PRODUCTS = `
-  query GetProducts($cursor: String) {
-    products(first: 20, after: $cursor) {
+// --- GRAPHQL QUERIES ---
+
+// 1. Fetch Pages (Models)
+const GET_PAGES = `
+  query GetPages($cursor: String) {
+    pages(first: 20, after: $cursor) {
       pageInfo { hasNextPage endCursor }
       edges {
         node {
           id
-          name
-          description
+          slug
+          title
+          content
           seoTitle
           seoDescription
         }
@@ -90,27 +89,28 @@ const GET_PRODUCTS = `
   }
 `;
 
-const TRANSLATE_MUTATION = `
-  mutation TranslateProduct($id: ID!, $input: TranslationInput!, $lang: LanguageCodeEnum!) {
-    productTranslate(id: $id, input: $input, languageCode: $lang) {
+// 2. Translate Page Mutation
+// ⚠️ FIX: Changed 'pageId' to 'id' to match Saleor Schema
+const TRANSLATE_PAGE = `
+  mutation TranslatePage($id: ID!, $input: PageTranslationInput!, $lang: LanguageCodeEnum!) {
+    pageTranslate(id: $id, input: $input, languageCode: $lang) {
       errors { field message }
-      product {
-        translation(languageCode: $lang) { name }
-      }
     }
   }
 `;
 
 // --- HELPERS ---
 
-function prepareContentForAI(product) {
+function prepareContent(item) {
 	let blocks = [];
 	try {
-		const rawDesc = JSON.parse(product.description);
-		if (rawDesc && Array.isArray(rawDesc.blocks)) {
-			blocks = rawDesc.blocks;
+		const rawContent = JSON.parse(item.content);
+		if (rawContent && Array.isArray(rawContent.blocks)) {
+			blocks = rawContent.blocks;
 		}
-	} catch (e) {}
+	} catch (e) {
+		// Content might be null
+	}
 
 	const textBlocks = blocks
 		.map((b, idx) => ({ ...b, originalIndex: idx }))
@@ -125,17 +125,18 @@ function prepareContentForAI(product) {
 
 	return {
 		payload: {
-			name: product.name || "",
-			seoTitle: product.seoTitle || "",
-			seoDescription: product.seoDescription || "",
-			descriptionTexts: blockTexts,
+			title: item.title || "",
+			seoTitle: item.seoTitle || "",
+			seoDescription: item.seoDescription || "",
+			contentTexts: blockTexts,
 		},
+		slug: item.slug,
 		originalBlocks: blocks,
 		textBlockIndices: textBlocks.map((b) => b.originalIndex),
 	};
 }
 
-function reconstructDescription(originalBlocks, textBlockIndices, translatedTexts) {
+function reconstructContent(originalBlocks, textBlockIndices, translatedTexts) {
 	const newBlocks = JSON.parse(JSON.stringify(originalBlocks));
 
 	translatedTexts.forEach((translatedText, i) => {
@@ -171,60 +172,66 @@ async function generateWithRetry(prompt, retries = 3) {
 }
 
 // --- WORKER FUNCTION ---
-async function processLanguage(product, payload, originalBlocks, textBlockIndices, lang) {
+async function processLanguage(item, payload, originalBlocks, textBlockIndices, lang) {
 	try {
-		// Resolve full language name to prevent context errors
 		const targetLanguageName = LANGUAGE_NAMES[lang] || lang;
 
+		let contextStr = "Translate content for an e-commerce store.";
+		if (item.slug === "home-hero")
+			contextStr += " CONTEXT: This is the MAIN HERO headline. Make it punchy, inspiring, and powerful.";
+		if (item.slug === "home-spotlight")
+			contextStr +=
+				" CONTEXT: This is an editorial section about craftsmanship. Keep it sophisticated and elegant.";
+
 		const prompt = `
-            You are a professional translator for a luxury e-commerce store.
-            Translate the following JSON object values to ${targetLanguageName} (${lang}).
+            Task: Translate e-commerce content to ${targetLanguageName} (${lang}).
+            ${contextStr}
+            
+            Fields to translate: title, seoTitle, seoDescription, contentTexts.
             
             CONSTRAINTS:
-            1. seoTitle: MUST be < 70 chars. Summarize if needed.
-            2. seoDescription: MUST be < 300 chars.
-            3. descriptionTexts: Keep HTML tags (<b>, <i>) intact.
-            4. Do not translate keys.
+            1. seoTitle < 70 chars.
+            2. seoDescription < 300 chars.
+            3. contentTexts is an array of strings. Maintain HTML tags (<b>, <i>) if present.
+            4. Return strictly valid JSON.
             
-            Input JSON:
-            ${JSON.stringify(payload)}
+            Input JSON: ${JSON.stringify(payload)}
         `;
 
 		const result = await generateWithRetry(prompt);
 		const translatedData = JSON.parse(result.response.text());
 
-		// Safety Truncation
-		if (translatedData.seoTitle && translatedData.seoTitle.length > 70) {
+		if (translatedData.seoTitle?.length > 70)
 			translatedData.seoTitle = translatedData.seoTitle.substring(0, 67) + "...";
-		}
-		if (translatedData.seoDescription && translatedData.seoDescription.length > 300) {
+		if (translatedData.seoDescription?.length > 300)
 			translatedData.seoDescription = translatedData.seoDescription.substring(0, 297) + "...";
-		}
 
-		let finalDescription = null;
-		if (originalBlocks.length > 0 && translatedData.descriptionTexts) {
-			finalDescription = reconstructDescription(
-				originalBlocks,
-				textBlockIndices,
-				translatedData.descriptionTexts,
-			);
+		let finalContentJson = null;
+		if (originalBlocks.length > 0 && translatedData.contentTexts) {
+			finalContentJson = reconstructContent(originalBlocks, textBlockIndices, translatedData.contentTexts);
 		}
 
 		const mutation = await saleor
-			.mutation(TRANSLATE_MUTATION, {
-				id: product.id,
+			.mutation(TRANSLATE_PAGE, {
+				id: item.id, // Correct argument for mutation
 				lang: lang,
 				input: {
-					name: translatedData.name,
-					description: finalDescription,
+					title: translatedData.title,
+					content: finalContentJson,
 					seoTitle: translatedData.seoTitle,
 					seoDescription: translatedData.seoDescription,
 				},
 			})
 			.toPromise();
 
-		if (mutation.data?.productTranslate?.errors?.length > 0) {
-			console.error(`   ❌ [${lang}] Saleor Error:`, mutation.data.productTranslate.errors[0].message);
+		// ⚠️ NEW: Explicitly check for Schema Errors (Silent failures)
+		if (mutation.error) {
+			console.error(`   ❌ [${lang}] Schema/Network Error:`, mutation.error.message);
+			return;
+		}
+
+		if (mutation.data?.pageTranslate?.errors?.length > 0) {
+			console.error(`   ❌ [${lang}] Saleor Error:`, mutation.data.pageTranslate.errors[0].message);
 		} else {
 			// Success
 		}
@@ -233,55 +240,56 @@ async function processLanguage(product, payload, originalBlocks, textBlockIndice
 	}
 }
 
-// --- MAIN LOOP ---
+// --- MAIN RUNNER ---
 async function run() {
-	console.log(`🚀 Starting Turbo Parallel Translation (${TARGET_LANGUAGES.length} languages per product)...`);
+	console.log(`🚀 Starting Page (Model) Translation (${TARGET_LANGUAGES.length} langs/page)...`);
 
 	let hasNext = true;
 	let cursor = null;
 	let processedCount = 0;
 
 	while (hasNext) {
-		const result = await saleor.query(GET_PRODUCTS, { cursor }).toPromise();
+		const result = await saleor.query(GET_PAGES, { cursor }).toPromise();
 
 		if (result.error) {
-			console.error("❌ Saleor Query Error:", result.error.message);
+			console.error("❌ Fatal Error Fetching Pages:", result.error);
 			break;
 		}
 
-		const products = result.data?.products?.edges.map((e) => e.node) || [];
-		if (products.length === 0) break;
+		const items = result.data?.pages?.edges.map((e) => e.node) || [];
+		if (items.length === 0) break;
 
-		const chunkedProducts = [];
-		for (let i = 0; i < products.length; i += 5) {
-			chunkedProducts.push(products.slice(i, i + 5));
+		const chunkedItems = [];
+		for (let i = 0; i < items.length; i += 5) {
+			chunkedItems.push(items.slice(i, i + 5));
 		}
 
-		for (const batch of chunkedProducts) {
+		for (const batch of chunkedItems) {
 			await Promise.all(
-				batch.map(async (product) => {
-					const { payload, originalBlocks, textBlockIndices } = prepareContentForAI(product);
-					if (!payload.name && payload.descriptionTexts.length === 0) return;
+				batch.map(async (item) => {
+					const { payload, slug, originalBlocks, textBlockIndices } = prepareContent(item);
 
-					console.log(`⚡ Processing: ${product.name} (${TARGET_LANGUAGES.length} langs)`);
+					if (!payload.title) return;
+
+					console.log(`⚡ Processing Page: "${item.title}" (slug: ${slug})`);
 
 					await Promise.all(
 						TARGET_LANGUAGES.map((lang) =>
-							processLanguage(product, payload, originalBlocks, textBlockIndices, lang),
+							processLanguage(item, payload, originalBlocks, textBlockIndices, lang),
 						),
 					);
 
-					console.log(`   ✅ Finished: ${product.name}`);
+					console.log(`   ✅ Finished: ${slug}`);
 				}),
 			);
-
 			processedCount += batch.length;
 		}
 
-		hasNext = result.data.products.pageInfo.hasNextPage;
-		cursor = result.data.products.pageInfo.endCursor;
+		hasNext = result.data.pages.pageInfo.hasNextPage;
+		cursor = result.data.pages.pageInfo.endCursor;
 	}
-	console.log(`\n🎉 Done! Processed ${processedCount} products.`);
+
+	console.log(`\n🎉 All Done! Processed ${processedCount} pages.`);
 }
 
 run();
