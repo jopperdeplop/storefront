@@ -2,25 +2,37 @@ fragment MenuItem on MenuItem {
 	id
 	name
 	level
+	url
+	# 1. Menu Item Translation
+	translation(languageCode: $locale) {
+		name
+	}
 	category {
 		id
 		slug
 		name
+		# 2. Linked Category Translation
+		translation(languageCode: $locale) {
+			name
+		}
 	}
 	collection {
 		id
 		name
 		slug
+		# 3. Linked Collection Translation
+		translation(languageCode: $locale) {
+			name
+		}
 	}
 	page {
 		id
 		title
 		slug
-	}
-	url
-	# --- NEW: Menu Item Translation ---
-	translation(languageCode: $locale) {
-		name
+		# 4. Linked Page Translation
+		translation(languageCode: $locale) {
+			title
+		}
 	}
 }
 
@@ -30,6 +42,9 @@ query MenuGetBySlug($slug: String!, $channel: String!, $locale: LanguageCodeEnum
 			...MenuItem
 			children {
 				...MenuItem
+				children {
+					...MenuItem
+				}
 			}
 		}
 	}

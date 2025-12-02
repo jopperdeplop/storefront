@@ -31,24 +31,38 @@ export const NavLinks = async ({ channel, locale }: { channel: string; locale: s
 			<NavLink href="/products">All</NavLink>
 
 			{navLinks.menu.items.map((item) => {
+				// --- TRANSLATION LOGIC ---
+				// 1. Check if the Menu Item itself has a translation (e.g. "Best Sellers" -> "Meilleurs Vendeurs")
+				const menuTranslation = item.translation?.name;
+
+				// 2. Check for Linked Entity Translations (Category, Collection, Page)
+				// We use optional chaining because 'item.category' might be null
+				const categoryLabel = item.category?.translation?.name || item.category?.name;
+				const collectionLabel = item.collection?.translation?.name || item.collection?.name;
+				const pageLabel = item.page?.translation?.title || item.page?.title;
+
+				// 3. Determine Final Label
+				// Priority: Menu Translation -> Entity Label (Translated or Original) -> Menu Item Name (Fallback)
+				const label = menuTranslation || categoryLabel || collectionLabel || pageLabel || item.name;
+
 				if (item.category) {
 					return (
 						<NavLink key={item.id} href={`/categories/${item.category.slug}`}>
-							{item.category.name}
+							{label}
 						</NavLink>
 					);
 				}
 				if (item.collection) {
 					return (
 						<NavLink key={item.id} href={`/collections/${item.collection.slug}`}>
-							{item.collection.name}
+							{label}
 						</NavLink>
 					);
 				}
 				if (item.page) {
 					return (
 						<NavLink key={item.id} href={`/pages/${item.page.slug}`}>
-							{item.page.title}
+							{label}
 						</NavLink>
 					);
 				}
@@ -59,7 +73,7 @@ export const NavLinks = async ({ channel, locale }: { channel: string; locale: s
 							href={item.url}
 							className="flex items-center text-sm font-medium text-gray-500 transition-colors hover:text-terracotta"
 						>
-							{item.name}
+							{label}
 						</Link>
 					);
 				}

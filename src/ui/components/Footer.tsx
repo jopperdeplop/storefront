@@ -9,14 +9,17 @@ export async function Footer({ channel, locale }: { channel: string; locale: str
 	let footerLinks = null;
 	let channels = null;
 
+	// FIX 1: Format Locale for Saleor (e.g. "en-us" -> "EN_US")
+	const saleorLocale = locale.toUpperCase().replace("-", "_") as LanguageCodeEnum;
+
 	try {
 		const footerPromise = executeGraphQL(MenuGetBySlugDocument, {
 			variables: {
-				slug: "footer",
+				slug: "footer", // Ensure a menu with slug "footer" exists in Saleor > Navigation
 				channel,
-				locale: locale.toUpperCase() as LanguageCodeEnum,
+				locale: saleorLocale,
 			},
-			revalidate: 60 * 60 * 24,
+			revalidate: 60 * 60 * 24, // Cache for 24 hours
 		});
 
 		const channelsPromise = process.env.SALEOR_APP_TOKEN
@@ -33,7 +36,6 @@ export async function Footer({ channel, locale }: { channel: string; locale: str
 		channels = channelsResult;
 	} catch (error) {
 		console.error("Failed to fetch Footer data:", error);
-		// We continue rendering the static parts of the footer even if API fails
 	}
 
 	const currentYear = new Date().getFullYear();
@@ -43,42 +45,56 @@ export async function Footer({ channel, locale }: { channel: string; locale: str
 			<div className="mx-auto max-w-[1920px] px-4 lg:px-8">
 				{/* --- LINKS GRID --- */}
 				<div className="mb-20 grid grid-cols-2 gap-12 md:grid-cols-4">
-					{footerLinks?.menu?.items?.map((item) => (
-						<div key={item.id}>
-							<h3 className="mb-6 font-serif text-lg font-medium text-gray-900">{item.name}</h3>
-							<ul className="space-y-4">
-								{item.children?.map((child) => {
-									const label =
-										child.category?.name || child.collection?.name || child.page?.title || child.name;
-									// Logic to determine the correct href
-									let href = child.url;
-									if (child.category) href = `/categories/${child.category.slug}`;
-									if (child.collection) href = `/collections/${child.collection.slug}`;
-									if (child.page) href = `/pages/${child.page.slug}`;
+					{footerLinks?.menu?.items?.map((item) => {
+						// Translate the Column Header
+						const columnLabel = item.translation?.name || item.name;
 
-									return (
-										<li key={child.id}>
-											<LinkWithChannel
-												href={href || "/"}
-												className="text-sm text-gray-500 decoration-terracotta underline-offset-4 transition-colors hover:text-terracotta hover:underline"
-											>
-												{label}
-											</LinkWithChannel>
-										</li>
-									);
-								})}
-							</ul>
-						</div>
-					))}
+						return (
+							<div key={item.id}>
+								<h3 className="mb-6 font-serif text-lg font-medium text-gray-900">{columnLabel}</h3>
+								<ul className="space-y-4">
+									{item.children?.map((child) => {
+										// --- TRANSLATION LOGIC (Same as NavLinks) ---
+										// Priority: Menu Translation > Entity Translation > Default Name
+
+										const childTranslation = child.translation?.name;
+
+										const categoryLabel = child.category?.translation?.name || child.category?.name;
+										const collectionLabel = child.collection?.translation?.name || child.collection?.name;
+										const pageLabel = child.page?.translation?.title || child.page?.title;
+
+										const label =
+											childTranslation || categoryLabel || collectionLabel || pageLabel || child.name;
+
+										// Logic to determine the correct href
+										let href = child.url;
+										if (child.category) href = `/categories/${child.category.slug}`;
+										if (child.collection) href = `/collections/${child.collection.slug}`;
+										if (child.page) href = `/pages/${child.page.slug}`;
+
+										return (
+											<li key={child.id}>
+												<LinkWithChannel
+													href={href || "/"}
+													className="text-sm text-gray-500 decoration-terracotta underline-offset-4 transition-colors hover:text-terracotta hover:underline"
+												>
+													{label}
+												</LinkWithChannel>
+											</li>
+										);
+									})}
+								</ul>
+							</div>
+						);
+					})}
 				</div>
 
-				{/* --- TRUST SIGNALS  --- */}
+				{/* --- TRUST SIGNALS --- */}
 				<div className="mb-12 border-b border-gray-200 pb-8">
 					<p className="mb-4 font-mono text-xs uppercase tracking-widest text-gray-400">
 						Verified European Logistics & Payment
 					</p>
 					<div className="flex flex-wrap gap-4 opacity-60 grayscale transition-all hover:opacity-100 hover:grayscale-0">
-						{/* CSS-based Badges to represent logos cleanly without external assets */}
 						<div className="flex h-8 items-center border border-gray-300 bg-white px-3 text-[10px] font-bold tracking-widest text-gray-600">
 							DHL
 						</div>
