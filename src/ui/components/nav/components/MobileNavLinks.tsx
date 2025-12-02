@@ -1,5 +1,5 @@
 import { NavLink } from "./NavLink";
-import { NavItem } from "./NavItem";
+import { NavItem, type MenuItem } from "./NavItem"; // Import Type
 import { executeGraphQL } from "@/lib/graphql";
 import { MenuGetBySlugDocument, type LanguageCodeEnum } from "@/gql/graphql";
 
@@ -22,13 +22,21 @@ export const MobileNavLinks = async ({ channel, locale }: { channel: string; loc
 
 	return (
 		<>
-			{/* FIX: Use relative path. NavLink adds the channel automatically. */}
+			{/* Static "All Items" Link */}
 			<div className="w-full border-b border-stone-200 py-3 lg:border-none lg:py-0">
 				<NavLink href="/products">All Items</NavLink>
 			</div>
 
 			{/* Dynamic Menu Items */}
-			{navLinks?.menu?.items?.map((item) => <NavItem key={item.id} item={item} channel={channel} />)}
+			{navLinks?.menu?.items?.map((item) => (
+				<NavItem
+					key={item.id}
+					// FIX: Cast item to MenuItem to satisfy strict TypeScript check
+					item={item as MenuItem}
+					channel={channel}
+					locale={locale}
+				/>
+			))}
 		</>
 	);
 };
