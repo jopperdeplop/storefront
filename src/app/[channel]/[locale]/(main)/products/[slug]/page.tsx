@@ -12,6 +12,7 @@ import { executeGraphQL } from "@/lib/graphql";
 import { formatMoney, formatMoneyRange } from "@/lib/utils";
 import { CheckoutAddLineDocument, ProductDetailsDocument, type LanguageCodeEnum } from "@/gql/graphql";
 import * as Checkout from "@/lib/checkout";
+import { LinkWithChannel } from "@/ui/atoms/LinkWithChannel";
 
 // --- FIX: Safe Type Extensions ---
 interface WithTranslation {
@@ -29,6 +30,16 @@ interface ProductImage {
 
 interface WithMedia {
 	media?: ProductImage[] | null;
+}
+
+interface WithAttributes {
+	attributes?: Array<{
+		attribute: { slug: string };
+		values: Array<{
+			name: string;
+			reference?: string | null; // UPDATED: Scalar ID
+		}>;
+	}> | null;
 }
 // --------------------------------
 
@@ -105,7 +116,7 @@ export default async function Page(props: {
 		notFound();
 	}
 
-	const productSafe = product as typeof product & WithTranslation & WithMedia;
+	const productSafe = product as typeof product & WithTranslation & WithMedia & WithAttributes;
 	const productName = productSafe.translation?.name || product.name;
 	const rawDescription = productSafe.translation?.description || product.description;
 	const description = rawDescription ? parser.parse(JSON.parse(rawDescription)) : null;
@@ -113,6 +124,22 @@ export default async function Page(props: {
 	const variants = product.variants;
 	const selectedVariantID = searchParams.variant;
 	const selectedVariant = variants?.find(({ id }) => id === selectedVariantID);
+
+	// --- BRAND LOGIC ---
+	// Since we only get an ID, we cannot easily link to /pages/[slug] directly without an extra query.
+	// For now, we will create a Search Link which effectively shows the brand's items.
+	// Fix: Added optional chaining to a.attribute?.slug to prevent TS error if attribute is possibly undefined
+	const brandAttr = productSafe.attributes?.find(
+		(a) => a.attribute?.slug?.includes("brand") && a.values.length > 0,
+	);
+	const brandValue = brandAttr?.values[0];
+
+	// We construct a link to your Brand Page if we can guess the slug (often name-lowercased),
+	// OR we use a search fallback.
+	// Let's try to assume slug ~ name for now, or link to search.
+	const brandName = brandValue?.name;
+	// Simple slugify for the link (fallback)
+	const brandSlugFallback = brandName?.toLowerCase().replace(/\s+/g, "-");
 
 	async function addItem() {
 		"use server";
@@ -249,12 +276,32 @@ export default async function Page(props: {
 					<div className="relative bg-stone-50 md:col-span-5 lg:col-span-4">
 						<div className="flex flex-col justify-between px-6 py-8 md:sticky md:top-0 md:h-screen md:overflow-y-auto md:px-12 md:py-16">
 							<div className="mb-8">
-								<div className="mb-6 flex items-center gap-3">
-									<div className="h-8 w-8 rounded-full bg-gray-200"></div>
-									<span className="font-mono text-xs uppercase tracking-wide text-gray-500">
-										Established 2025 • Europe
-									</span>
-								</div>
+								{/* --- BRAND HEADER --- */}
+								{brandValue && brandName ? (
+									<LinkWithChannel
+										// Try to link to the page using a slugified name.
+										// Since we can't get the real slug easily without a 2nd query, this is the best assumption.
+										// Or fallback to search.
+										href={`/pages/${brandSlugFallback}`}
+										channel={params.channel}
+										locale={params.locale}
+										className="group mb-6 flex items-center gap-3"
+									>
+										<div className="flex h-8 w-8 items-center justify-center rounded-full bg-terracotta/10 text-xs font-bold text-terracotta">
+											{brandName.substring(0, 2).toUpperCase()}
+										</div>
+										<span className="font-mono text-xs uppercase tracking-wide text-gray-500 transition-colors group-hover:text-terracotta">
+											{brandName} • Official Partner
+										</span>
+									</LinkWithChannel>
+								) : (
+									<div className="mb-6 flex items-center gap-3">
+										<div className="h-8 w-8 rounded-full bg-gray-200"></div>
+										<span className="font-mono text-xs uppercase tracking-wide text-gray-500">
+											Established 2025 • Europe
+										</span>
+									</div>
+								)}
 
 								<h1 className="mb-2 font-serif text-4xl font-medium leading-tight text-gray-900 md:text-5xl">
 									{productName}
@@ -281,7 +328,6 @@ export default async function Page(props: {
 											variants={variants}
 											product={product}
 											channel={params.channel}
-											// FIX: Pass the lowercase URL param, NOT the Uppercase Enum
 											locale={params.locale}
 										/>
 									</div>

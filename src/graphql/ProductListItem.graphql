@@ -2,6 +2,14 @@ fragment ProductListItem on Product {
 	id
 	name
 	slug
+	thumbnail(size: 512, format: WEBP) {
+		url
+		alt
+	}
+	category {
+		id
+		name
+	}
 	pricing {
 		priceRange {
 			start {
@@ -12,17 +20,7 @@ fragment ProductListItem on Product {
 			}
 		}
 	}
-	category {
-		id
-		name
-	}
-	thumbnail(size: 1024, format: WEBP) {
-		url
-		alt
-	}
-	# --- NEW: Translation ---
 	translation(languageCode: $locale) {
 		name
-		description
 	}
 }

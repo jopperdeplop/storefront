@@ -14,6 +14,21 @@ query ProductDetails($slug: String!, $channel: String!, $locale: LanguageCodeEnu
 			id
 			name
 		}
+		# --- UPDATED: Fetch just the reference ID ---
+		attributes {
+			attribute {
+				id
+				slug
+				name
+				inputType
+			}
+			values {
+				id
+				name
+				reference # <--- Just the scalar ID
+			}
+		}
+		# ------------------------------------------
 		variants {
 			...VariantDetails
 		}
@@ -33,10 +48,10 @@ query ProductDetails($slug: String!, $channel: String!, $locale: LanguageCodeEnu
 				}
 			}
 		}
-		# --- NEW: Product Translation ---
 		translation(languageCode: $locale) {
 			name
 			description
 		}
+		isAvailable
 	}
 }

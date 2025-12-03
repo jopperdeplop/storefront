@@ -7,23 +7,20 @@ import { executeGraphQL } from "@/lib/graphql";
 
 const parser = edjsHTML();
 
-// --- FIX: Safe Type Extension for Translations ---
 interface WithTranslation {
 	translation?: {
 		title?: string;
 		content?: string;
 	} | null;
 }
-// ------------------------------------------------
 
 export const generateMetadata = async (props: {
-	params: Promise<{ slug: string; locale: string }>;
+	params: Promise<{ slug: string; channel: string; locale: string }>;
 }): Promise<Metadata> => {
 	const params = await props.params;
 	const { page } = await executeGraphQL(PageGetBySlugDocument, {
 		variables: {
 			slug: params.slug,
-			// UPDATED: Include locale
 			locale: params.locale.toUpperCase() as LanguageCodeEnum,
 		},
 		revalidate: 60,
@@ -35,13 +32,17 @@ export const generateMetadata = async (props: {
 	};
 };
 
-export default async function Page(props: { params: Promise<{ slug: string; locale: string }> }) {
+export default async function Page(props: {
+	params: Promise<{ slug: string; channel: string; locale: string }>;
+}) {
 	const params = await props.params;
+	const localeEnum = params.locale.toUpperCase() as LanguageCodeEnum;
+
+	// 1. Fetch Page Content
 	const { page } = await executeGraphQL(PageGetBySlugDocument, {
 		variables: {
 			slug: params.slug,
-			// UPDATED: Include locale
-			locale: params.locale.toUpperCase() as LanguageCodeEnum,
+			locale: localeEnum,
 		},
 		revalidate: 60,
 	});
@@ -50,28 +51,38 @@ export default async function Page(props: { params: Promise<{ slug: string; loca
 		notFound();
 	}
 
-	// --- FIX: Safe Type Casting ---
 	const pageWithTranslation = page as typeof page & WithTranslation;
-
 	const title = pageWithTranslation.translation?.title || page.title;
 	const content = pageWithTranslation.translation?.content || page.content;
 
-	// Note: 'content' is now strictly typed as string | null | undefined,
-	// so JSON.parse(content) is safe when content is truthy.
-	// We explicitly cast the result of parser.parse to string[] to satisfy strict linting if necessary,
-	// though usually edjsHTML returns string[].
-	const contentHtml = content ? (parser.parse(JSON.parse(content)) ) : null;
+	let contentHtml: string[] | null = null;
+
+	if (content) {
+		try {
+			const contentJson = JSON.parse(content) as { blocks?: unknown[] };
+			if (contentJson && Array.isArray(contentJson.blocks) && contentJson.blocks.length > 0) {
+				const parsed = parser.parse(contentJson);
+				if (Array.isArray(parsed)) {
+					contentHtml = parsed;
+				}
+			}
+		} catch (e) {
+			console.error("Failed to parse page content JSON", e);
+		}
+	}
 
 	return (
-		<div className="mx-auto max-w-7xl p-8 pb-16">
-			<h1 className="text-3xl font-semibold">{title}</h1>
-			{contentHtml && (
-				<div className="prose">
-					{contentHtml.map((htmlSnippet: string) => (
-						<div key={htmlSnippet} dangerouslySetInnerHTML={{ __html: xss(htmlSnippet) }} />
-					))}
-				</div>
-			)}
+		<div className="mx-auto max-w-7xl px-8 py-12">
+			<header className="mb-12 text-center">
+				<h1 className="text-5xl font-bold tracking-tight text-neutral-900">{title}</h1>
+				{contentHtml && contentHtml.length > 0 && (
+					<div className="prose prose-lg mx-auto mt-6 text-neutral-500">
+						{contentHtml.map((htmlSnippet: string, index: number) => (
+							<div key={index} dangerouslySetInnerHTML={{ __html: xss(htmlSnippet) }} />
+						))}
+					</div>
+				)}
+			</header>
 		</div>
 	);
 }

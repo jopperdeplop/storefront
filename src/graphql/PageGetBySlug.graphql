@@ -1,17 +1,22 @@
 query PageGetBySlug($slug: String!, $locale: LanguageCodeEnum!) {
 	page(slug: $slug) {
 		id
-		slug
 		title
+		content
 		seoTitle
 		seoDescription
-		content
-		# --- NEW: Page Translation ---
+		contentJson
+		# --- ADD THIS BLOCK ---
+		pageType {
+			id
+			name
+			slug
+		}
+		# ----------------------
 		translation(languageCode: $locale) {
 			title
 			content
-			seoTitle
-			seoDescription
+			contentJson
 		}
 	}
 }

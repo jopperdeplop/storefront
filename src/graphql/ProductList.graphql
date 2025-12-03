@@ -1,5 +1,5 @@
-query ProductList($first: Int!, $channel: String!, $locale: LanguageCodeEnum!) {
-	products(first: $first, channel: $channel) {
+query ProductList($channel: String!, $first: Int, $filter: ProductFilterInput, $locale: LanguageCodeEnum!) {
+	products(channel: $channel, first: $first, filter: $filter) {
 		edges {
 			node {
 				...ProductListItem
