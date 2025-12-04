@@ -23,6 +23,33 @@ const CHANNEL_CONFIG = {
 	"default-channel": ["en"], // Global fallback
 };
 
+const DEFAULT_LOCALE = "en";
+const DEFAULT_CHANNEL = "eur";
+
+/**
+ * Gets the best matching locale from the Accept-Language header that is supported
+ * by the provided allowedLocales list. Falls back to DEFAULT_LOCALE.
+ */
+const getPreferredLocale = (request: NextRequest, allowedLocales: string[]): string => {
+	const acceptLanguage = request.headers.get("accept-language");
+
+	if (!acceptLanguage) {
+		return DEFAULT_LOCALE;
+	}
+
+	// Parse the Accept-Language header (e.g., 'fr-CH, fr;q=0.9, en;q=0.8')
+	// and find the best match in the allowed locales.
+	const userPreferred = acceptLanguage
+		.split(",")
+		.map((lang) => lang.trim().split(";")[0].split("-")[0])
+		.filter(Boolean);
+
+	// Find the first preferred locale that is supported by the channel
+	const bestMatch = userPreferred.find((lang) => allowedLocales.includes(lang));
+
+	return bestMatch || DEFAULT_LOCALE;
+};
+
 export function middleware(request: NextRequest) {
 	const { pathname } = request.nextUrl;
 
@@ -42,10 +69,18 @@ export function middleware(request: NextRequest) {
 	// 3. Channel Validation
 	const validChannels = Object.keys(CHANNEL_CONFIG);
 	if (!validChannels.includes(currentChannel)) {
-		// Redirect to default channel if missing or invalid
+		// --- MODIFIED LOGIC: Determine locale from headers and redirect to best match ---
+
+		// 3.1. Determine the best locale for the desired default channel ('eur')
+		const allowedLocalesForDefaultChannel = CHANNEL_CONFIG[DEFAULT_CHANNEL as keyof typeof CHANNEL_CONFIG];
+		const preferredLocale = getPreferredLocale(request, allowedLocalesForDefaultChannel);
+
+		// 3.2. Redirect to default channel/preferred locale if missing or invalid
 		const url = request.nextUrl.clone();
-		url.pathname = `/eur/en${pathname}`;
+		// Construct new path: /[DEFAULT_CHANNEL]/[preferredLocale]/[originalPath]
+		url.pathname = `/${DEFAULT_CHANNEL}/${preferredLocale}${pathname}`;
 		return NextResponse.redirect(url);
+		// ----------------------------------------------------------------------------
 	}
 
 	// 4. Locale Validation
