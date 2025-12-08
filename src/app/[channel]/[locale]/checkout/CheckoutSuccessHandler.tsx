@@ -5,48 +5,55 @@ import { useSearchParams } from "next/navigation";
 
 export function CheckoutSuccessHandler() {
 	const searchParams = useSearchParams();
-
-	// CHECK 1: Do we have a finalized Order ID?
-	const orderId = searchParams.get("order");
-
-	// CHECK 2: Did Stripe just redirect us with a success flag?
-	// The URL you pasted contains: &redirect_status=succeeded
-	const stripeStatus = searchParams.get("redirect_status");
-	const isStripeSuccess = stripeStatus === "succeeded";
+	const redirectStatus = searchParams.get("redirect_status");
+	const checkoutParam = searchParams.get("checkout");
+	const orderParam = searchParams.get("order");
 
 	useEffect(() => {
-		// TRIGGER: If either condition is true, nuking the cart is safe.
-		if (orderId || isStripeSuccess) {
-			console.log("Payment Succeeded (Detected via URL). clearing cart...");
+		// TRIGGER: If we see "succeeded" status OR an Order ID
+		if (redirectStatus === "succeeded" || orderParam) {
+			console.log("Payment Succeeded. Cleaning up session...");
 
-			// 1. DELETE LOCAL STORAGE (Browser Memory)
+			// 1. WIPE STORAGE (Local & Session)
 			const keys = [
 				"saleor_checkout_token",
 				"checkoutToken",
 				"saleor_cart",
 				"_saleor_csrf_token",
-				"checkout", // Sometimes simple "checkout" key is used
+				"checkout",
 			];
 			keys.forEach((key) => {
 				localStorage.removeItem(key);
 				sessionStorage.removeItem(key);
 			});
 
-			// 2. EXPIRE COOKIES (Server Memory)
+			// 2. EXPIRE COOKIES
 			const cookies = ["checkoutId", "token", "saleor_checkout_token", "saleor_channel"];
 			cookies.forEach((name) => {
 				document.cookie = `${name}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;`;
 			});
 
-			// 3. NUCLEAR OPTION (Optional safety net)
-			// If we found the Stripe Success flag specifically, we force a refresh
-			// to ensure the UI updates if the user is stuck on the static page.
-			if (isStripeSuccess && !sessionStorage.getItem("stripe_refresh_done")) {
-				sessionStorage.setItem("stripe_refresh_done", "true");
-				window.location.reload();
+			// 3. THE FIX: REMOVE THE CHECKOUT ID FROM URL
+			// If the URL still has '?checkout=...', RootWrapper will keep restoring the cart.
+			// We must reload the page to a URL that DOES NOT have it.
+			if (checkoutParam) {
+				const newUrl = new URL(window.location.href);
+
+				// Remove the parameters that cause the cart to reload
+				newUrl.searchParams.delete("checkout");
+				newUrl.searchParams.delete("payment_intent");
+				newUrl.searchParams.delete("payment_intent_client_secret");
+
+				// Add/Keep a flag so page.tsx knows to stay open
+				if (!newUrl.searchParams.has("order")) {
+					newUrl.searchParams.set("order", "confirmed");
+				}
+
+				// FORCE REDIRECT to the clean URL
+				window.location.href = newUrl.toString();
 			}
 		}
-	}, [orderId, isStripeSuccess]);
+	}, [redirectStatus, checkoutParam, orderParam]);
 
 	return null;
 }
