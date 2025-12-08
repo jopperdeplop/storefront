@@ -1,31 +1,44 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 
 export function CheckoutSuccessHandler() {
-	const router = useRouter();
-
 	useEffect(() => {
-		console.log("Order confirmed: Executing cleanup...");
+		// Check if we have already cleaned up to avoid infinite reloads
+		const hasCleaned = sessionStorage.getItem("order_cleaned");
 
-		// 1. CLEAR LOCAL STORAGE (The browser memory)
-		const keysToRemove = ["saleor_checkout_token", "checkoutToken", "saleor_cart", "_saleor_csrf_token"];
-		keysToRemove.forEach((key) => localStorage.removeItem(key));
+		if (!hasCleaned) {
+			console.log("Order confirmed: Performing nuclear cleanup...");
 
-		// 2. CLEAR COOKIES (The server memory)
-		// We force-expire the cookies by setting their date to the past.
-		// Common names for Saleor cookies: 'checkoutId', 'token', 'saleor_channel'
-		const cookiesToDelete = ["checkoutId", "token", "saleor_checkout_token"];
+			// 1. DELETE ALL KNOWN SALEOR KEYS
+			const keys = [
+				"saleor_checkout_token",
+				"checkoutToken",
+				"saleor_cart",
+				"_saleor_csrf_token",
+				"checkout",
+			];
+			keys.forEach((key) => {
+				localStorage.removeItem(key);
+				// Also try removing from session storage just in case
+				sessionStorage.removeItem(key);
+			});
 
-		cookiesToDelete.forEach((name) => {
-			document.cookie = `${name}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;`;
-		});
+			// 2. EXPIRE COOKIES (Server-side tokens)
+			const cookies = ["checkoutId", "token", "saleor_checkout_token", "saleor_channel"];
+			cookies.forEach((name) => {
+				document.cookie = `${name}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;`;
+			});
 
-		// 3. FORCE UI REFRESH (Crucial for App Router)
-		// This tells Next.js: "Re-fetch the data for the Navbar/Cart icon now"
-		router.refresh();
-	}, [router]);
+			// 3. MARK AS CLEANED
+			sessionStorage.setItem("order_cleaned", "true");
+
+			// 4. THE NUCLEAR OPTION: HARD RELOAD
+			// This forces the browser to re-download the page from scratch.
+			// Since we deleted the tokens above, the new page load will have 0 items.
+			window.location.reload();
+		}
+	}, []);
 
 	return null;
 }
