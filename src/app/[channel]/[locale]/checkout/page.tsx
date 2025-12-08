@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { invariant } from "ts-invariant";
 import { RootWrapper } from "./pageWrapper";
-// 1. ADD THIS IMPORT
 import { CheckoutSuccessHandler } from "./CheckoutSuccessHandler";
 
 export const metadata = {
@@ -9,17 +8,22 @@ export const metadata = {
 };
 
 export default async function CheckoutPage(props: {
-	searchParams: Promise<{ checkout?: string; order?: string }>;
+	// UPDATED: Added redirect_status to the type definition
+	searchParams: Promise<{ checkout?: string; order?: string; redirect_status?: string }>;
 }) {
 	const searchParams = await props.searchParams;
 	invariant(process.env.NEXT_PUBLIC_SALEOR_API_URL, "Missing NEXT_PUBLIC_SALEOR_API_URL env variable");
 
+	// Guard clause: If we have no checkout ID and no order ID, render nothing.
 	if (!searchParams.checkout && !searchParams.order) {
 		return null;
 	}
 
-	// 2. CHECK IF ORDER IS CONFIRMED
-	const isOrderConfirmed = !!searchParams.order;
+	// UPDATED LOGIC:
+	// We consider the order confirmed if:
+	// 1. There is an Order ID (Standard Saleor flow)
+	// 2. OR Stripe says "redirect_status=succeeded" (The URL you are landing on)
+	const isOrderConfirmed = !!searchParams.order || searchParams.redirect_status === "succeeded";
 
 	return (
 		<div className="min-h-dvh bg-stone-50 text-gray-900 selection:bg-terracotta selection:text-white">
@@ -38,8 +42,8 @@ export default async function CheckoutPage(props: {
 
 				<h1 className="mb-8 font-serif text-3xl font-medium text-gray-900 md:text-4xl">Secure Checkout</h1>
 
-				{/* --- 3. INJECT THE FIX HERE --- */}
-				{/* If we have an order ID, run the cart cleaner script */}
+				{/* --- THE FIX --- */}
+				{/* This runs the moment 'isOrderConfirmed' becomes true, wiping the cart. */}
 				{isOrderConfirmed && <CheckoutSuccessHandler />}
 
 				<section className="flex-1">
