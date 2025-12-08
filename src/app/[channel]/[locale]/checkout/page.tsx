@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { invariant } from "ts-invariant";
 import { RootWrapper } from "./pageWrapper";
-// 1. Import the new success handler
 import { CheckoutSuccessHandler } from "./CheckoutSuccessHandler";
 
 export const metadata = {
@@ -9,21 +8,16 @@ export const metadata = {
 };
 
 export default async function CheckoutPage(props: {
-	// 2. Add redirect_status to the type definition so we can read it
 	searchParams: Promise<{ checkout?: string; order?: string; redirect_status?: string }>;
 }) {
 	const searchParams = await props.searchParams;
 	invariant(process.env.NEXT_PUBLIC_SALEOR_API_URL, "Missing NEXT_PUBLIC_SALEOR_API_URL env variable");
 
-	// Guard clause: Ensure we have at least a checkout ID or an order ID before rendering
-	if (!searchParams.checkout && !searchParams.order) {
+	if (!searchParams.checkout && !searchParams.order && !searchParams.redirect_status) {
 		return null;
 	}
 
-	// 3. UPDATED LOGIC:
-	// We consider the order confirmed if:
-	// A) There is an 'order' parameter (Standard Saleor flow)
-	// B) OR Stripe returns 'redirect_status=succeeded' (Your current flow)
+	// Check if we are in "Success Mode"
 	const isOrderConfirmed = !!searchParams.order || searchParams.redirect_status === "succeeded";
 
 	return (
@@ -41,15 +35,53 @@ export default async function CheckoutPage(props: {
 					</div>
 				</header>
 
-				<h1 className="mb-8 font-serif text-3xl font-medium text-gray-900 md:text-4xl">Secure Checkout</h1>
+				{/* --- DYNAMIC CONTENT BLOCK --- */}
+				{isOrderConfirmed ? (
+					/* 1. SUCCESS VIEW (Replaces the broken Checkout App) */
+					<div className="flex flex-1 flex-col items-center justify-center text-center">
+						<CheckoutSuccessHandler />
 
-				{/* --- THE FIX --- */}
-				{/* If the order is confirmed, run the handler to wipe the cart and clean the URL */}
-				{isOrderConfirmed && <CheckoutSuccessHandler />}
+						<div className="mb-6 text-terracotta">
+							{/* Checkmark Icon */}
+							<svg
+								width="64"
+								height="64"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								strokeWidth="2"
+								strokeLinecap="round"
+								strokeLinejoin="round"
+							>
+								<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+								<polyline points="22 4 12 14.01 9 11.01"></polyline>
+							</svg>
+						</div>
 
-				<section className="flex-1">
-					<RootWrapper saleorApiUrl={process.env.NEXT_PUBLIC_SALEOR_API_URL} />
-				</section>
+						<h1 className="mb-4 font-serif text-4xl text-gray-900">Payment Successful</h1>
+						<p className="mb-8 max-w-md text-lg text-gray-600">
+							We have received your payment. Your order is being processed and you will receive a confirmation
+							email shortly.
+						</p>
+
+						<Link
+							href="/"
+							className="rounded bg-gray-900 px-8 py-3 text-sm font-medium text-white transition-colors hover:bg-gray-800"
+						>
+							Return to Store
+						</Link>
+					</div>
+				) : (
+					/* 2. CHECKOUT VIEW (Only show this if NOT confirmed) */
+					<>
+						<h1 className="mb-8 font-serif text-3xl font-medium text-gray-900 md:text-4xl">
+							Secure Checkout
+						</h1>
+						<section className="flex-1">
+							<RootWrapper saleorApiUrl={process.env.NEXT_PUBLIC_SALEOR_API_URL} />
+						</section>
+					</>
+				)}
 			</section>
 		</div>
 	);
