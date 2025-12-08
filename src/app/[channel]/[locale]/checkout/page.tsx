@@ -13,6 +13,7 @@ export default async function CheckoutPage(props: {
 	const searchParams = await props.searchParams;
 	invariant(process.env.NEXT_PUBLIC_SALEOR_API_URL, "Missing NEXT_PUBLIC_SALEOR_API_URL env variable");
 
+	// Guard clause: Ensure we have at least a checkout ID or an order ID before rendering
 	if (!searchParams.checkout && !searchParams.order && !searchParams.redirect_status) {
 		return null;
 	}
@@ -35,7 +36,7 @@ export default async function CheckoutPage(props: {
 				</header>
 
 				{isSuccess ? (
-					/* SUCCESS MODE: Only show text + Run Cleanup. NO RootWrapper. */
+					/* SUCCESS MODE */
 					<div className="flex flex-1 flex-col items-center justify-center text-center">
 						<CheckoutSuccessHandler />
 						<h1 className="mb-4 font-serif text-4xl text-gray-900">Payment Successful</h1>
@@ -45,7 +46,7 @@ export default async function CheckoutPage(props: {
 						</Link>
 					</div>
 				) : (
-					/* CHECKOUT MODE: Only show this if payment is NOT done */
+					/* CHECKOUT MODE */
 					<>
 						<h1 className="mb-8 font-serif text-3xl font-medium text-gray-900 md:text-4xl">
 							Secure Checkout
