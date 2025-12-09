@@ -20,18 +20,15 @@ export const useCheckoutComplete = () => {
 					const order = data.order;
 
 					if (order) {
-						// FIX: Use native URL API to manipulate params safely
 						const url = new URL(window.location.href);
-
-						// 1. Remove checkout ID to exit the checkout flow
+						// Clear checkout params to break the loop
 						url.searchParams.delete("checkout");
-						url.searchParams.delete("payment_intent"); // cleanup stripe params if any
+						url.searchParams.delete("payment_intent");
 						url.searchParams.delete("redirect_status");
-
-						// 2. Add order ID to enter the confirmation flow
+						// Set order param to trigger OrderConfirmation view
 						url.searchParams.set("order", order.id);
 
-						// 3. Force a hard navigation to the new URL
+						// Force hard navigation
 						window.location.href = url.toString();
 					}
 				},

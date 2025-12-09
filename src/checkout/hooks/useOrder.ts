@@ -12,10 +12,8 @@ export const useOrder = () => {
 	});
 
 	useEffect(() => {
-		// Stop polling if we have data or a hard error
 		if (loading || data?.order || error) return;
 
-		// Poll if data is missing but no error yet (race condition)
 		const intervalId = setInterval(() => {
 			reexecuteQuery({ requestPolicy: "network-only" });
 		}, 2000);
@@ -23,6 +21,5 @@ export const useOrder = () => {
 		return () => clearInterval(intervalId);
 	}, [data, loading, error, reexecuteQuery]);
 
-	// Return error so the view can handle it
 	return { order: data?.order as OrderFragment, loading, error };
 };
