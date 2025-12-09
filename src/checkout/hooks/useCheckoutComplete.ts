@@ -16,21 +16,20 @@ export const useCheckoutComplete = () => {
 					checkoutId,
 				}),
 				onSubmit: checkoutComplete,
-				onSuccess: ({ data }) => {
-					const order = data.order;
+				onSuccess: () => {
+					// Fix: Redirect to a generic success parameter to bypass backend race conditions
+					const url = new URL(window.location.href);
 
-					if (order) {
-						const url = new URL(window.location.href);
-						// Clear checkout params to break the loop
-						url.searchParams.delete("checkout");
-						url.searchParams.delete("payment_intent");
-						url.searchParams.delete("redirect_status");
-						// Set order param to trigger OrderConfirmation view
-						url.searchParams.set("order", order.id);
+					// Clear checkout state parameters
+					url.searchParams.delete("checkout");
+					url.searchParams.delete("payment_intent");
+					url.searchParams.delete("redirect_status");
 
-						// Force hard navigation
-						window.location.href = url.toString();
-					}
+					// Set flag to show static success page
+					url.searchParams.set("paymentSuccess", "true");
+
+					// Force hard navigation
+					window.location.href = url.toString();
 				},
 			}),
 			[checkoutComplete, checkoutId],
