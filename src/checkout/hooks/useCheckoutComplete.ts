@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useCheckoutCompleteMutation } from "@/checkout/graphql";
 import { useCheckout } from "@/checkout/hooks/useCheckout";
 import { useSubmit } from "@/checkout/hooks/useSubmit";
-import { replaceUrl } from "@/checkout/lib/utils/url";
+import { getUrl } from "@/checkout/lib/utils/url"; // Changed from replaceUrl to getUrl
 
 export const useCheckoutComplete = () => {
 	const {
@@ -21,12 +21,18 @@ export const useCheckoutComplete = () => {
 					const order = data.order;
 
 					if (order) {
-						const newUrl = replaceUrl({
+						// FIX: Use getUrl instead of replaceUrl.
+						// replaceUrl pushes state immediately, causing the subsequent
+						// window.location.href assignment to be ignored by the browser.
+						const { newUrl } = getUrl({
 							query: {
 								order: order.id,
+								checkout: undefined, // Explicitly clear checkout param
 							},
 							replaceWholeQuery: true,
 						});
+
+						// This will now trigger a proper hard reload
 						window.location.href = newUrl;
 					}
 				},

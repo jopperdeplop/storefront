@@ -6,9 +6,7 @@ import { useOrder } from "@/checkout/hooks/useOrder";
 export const OrderConfirmation = () => {
 	const { order, loading } = useOrder();
 
-	// Robust Loading State:
-	// If we are loading OR if the order is null (still polling), show the finalizing screen.
-	// This prevents the component from accessing properties of 'undefined'.
+	// If loading or order is null (polling), show status
 	if (loading || !order) {
 		return (
 			<main className="grid grid-cols-1 gap-x-16 lg:grid-cols-2">
@@ -16,7 +14,7 @@ export const OrderConfirmation = () => {
 					<div className="text-center">
 						<h2 className="mb-2 text-xl font-bold">Finalizing your order...</h2>
 						<p className="text-base text-gray-500">
-							Please do not close this page or click back.
+							Please do not close this page.
 							<br />
 							We are confirming your payment details.
 						</p>
