@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useCheckoutCompleteMutation } from "@/checkout/graphql";
 import { useCheckout } from "@/checkout/hooks/useCheckout";
 import { useSubmit } from "@/checkout/hooks/useSubmit";
+import { replaceUrl } from "@/checkout/lib/utils/url";
 
 export const useCheckoutComplete = () => {
 	const {
@@ -16,20 +17,18 @@ export const useCheckoutComplete = () => {
 					checkoutId,
 				}),
 				onSubmit: checkoutComplete,
-				onSuccess: () => {
-					// Fix: Redirect to a generic success parameter to bypass backend race conditions
-					const url = new URL(window.location.href);
+				onSuccess: ({ data }) => {
+					const order = data.order;
 
-					// Clear checkout state parameters
-					url.searchParams.delete("checkout");
-					url.searchParams.delete("payment_intent");
-					url.searchParams.delete("redirect_status");
-
-					// Set flag to show static success page
-					url.searchParams.set("paymentSuccess", "true");
-
-					// Force hard navigation
-					window.location.href = url.toString();
+					if (order) {
+						const newUrl = replaceUrl({
+							query: {
+								order: order.id,
+							},
+							replaceWholeQuery: true,
+						});
+						window.location.href = newUrl;
+					}
 				},
 			}),
 			[checkoutComplete, checkoutId],

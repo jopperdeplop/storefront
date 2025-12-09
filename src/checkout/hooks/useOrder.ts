@@ -4,7 +4,6 @@ import { getQueryParams } from "@/checkout/lib/utils/url";
 export const useOrder = () => {
 	const { orderId } = getQueryParams();
 
-	// Standard query without aggressive polling
 	const [{ data, fetching: loading }] = useOrderQuery({
 		pause: !orderId,
 		variables: { languageCode: "EN_US", id: orderId as string },

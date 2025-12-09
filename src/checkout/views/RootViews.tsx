@@ -5,12 +5,9 @@ import { getQueryParams } from "@/checkout/lib/utils/url";
 import { PaymentProcessingScreen } from "@/checkout/sections/PaymentSection/PaymentProcessingScreen";
 
 export const RootViews = () => {
-	const { orderId } = getQueryParams();
-	// Check standard browser params for our new flag
-	const isSuccess =
-		typeof window !== "undefined" && new URLSearchParams(window.location.search).get("paymentSuccess");
+	const orderId = getQueryParams().orderId;
 
-	if (orderId || isSuccess) {
+	if (orderId) {
 		return (
 			<Suspense fallback={<OrderConfirmationSkeleton />}>
 				<OrderConfirmation />
