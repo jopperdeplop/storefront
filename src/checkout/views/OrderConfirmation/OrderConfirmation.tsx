@@ -6,12 +6,11 @@ import { useOrder } from "@/checkout/hooks/useOrder";
 export const OrderConfirmation = () => {
 	const { order, loading } = useOrder();
 
-	// Prevent crash while polling for the order
+	// Show loader while polling (loading=false but order=null)
 	if (loading || !order) {
 		return (
 			<main className="grid grid-cols-1 gap-x-16 lg:grid-cols-2">
 				<div className="flex h-screen items-center justify-center lg:col-span-2">
-					{/* You can replace this with your specific Loader component */}
 					<div className="text-center">
 						<p className="text-lg font-bold">Finalizing your order...</p>
 						<p className="text-sm text-gray-500">Please do not close this page.</p>
