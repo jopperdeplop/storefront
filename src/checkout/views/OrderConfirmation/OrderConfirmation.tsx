@@ -4,9 +4,25 @@ import { OrderInfo } from "@/checkout/sections/OrderInfo";
 import { useOrder } from "@/checkout/hooks/useOrder";
 
 export const OrderConfirmation = () => {
-	const { order, loading } = useOrder();
+	const { order, loading, error } = useOrder();
 
-	// If loading or order is null (polling), show status
+	// 1. Handle Error State
+	if (error) {
+		console.error("Order fetch error:", error);
+		return (
+			<div className="flex h-screen flex-col items-center justify-center p-4 text-center">
+				<h2 className="text-xl font-bold text-red-600">Unable to load order</h2>
+				<p className="mt-2 text-gray-700">
+					{/* Fixed: escaped single quote */}
+					We successfully processed your payment, but couldn&apos;t load the confirmation details.
+				</p>
+				<p className="mt-4 text-sm text-gray-500">Please check your email for the order confirmation.</p>
+				<p className="mt-2 text-xs text-gray-400">Error: {error.message}</p>
+			</div>
+		);
+	}
+
+	// 2. Handle Loading / Polling State
 	if (loading || !order) {
 		return (
 			<main className="grid grid-cols-1 gap-x-16 lg:grid-cols-2">

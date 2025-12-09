@@ -5,22 +5,24 @@ import { getQueryParams } from "@/checkout/lib/utils/url";
 export const useOrder = () => {
 	const { orderId } = getQueryParams();
 
-	const [{ data, fetching: loading }, reexecuteQuery] = useOrderQuery({
+	const [{ data, fetching: loading, error }, reexecuteQuery] = useOrderQuery({
 		pause: !orderId,
 		variables: { languageCode: "EN_US", id: orderId as string },
-		requestPolicy: "network-only", // Critical: Ensure we don't cache "null" results
+		requestPolicy: "network-only",
 	});
 
-	// Polling logic: If order is missing, retry every 2s
 	useEffect(() => {
-		if (loading || data?.order) return;
+		// Stop polling if we have data or a hard error
+		if (loading || data?.order || error) return;
 
+		// Poll if data is missing but no error yet (race condition)
 		const intervalId = setInterval(() => {
 			reexecuteQuery({ requestPolicy: "network-only" });
 		}, 2000);
 
 		return () => clearInterval(intervalId);
-	}, [data, loading, reexecuteQuery]);
+	}, [data, loading, error, reexecuteQuery]);
 
-	return { order: data?.order as OrderFragment, loading };
+	// Return error so the view can handle it
+	return { order: data?.order as OrderFragment, loading, error };
 };

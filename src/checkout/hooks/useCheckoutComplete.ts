@@ -2,7 +2,6 @@ import { useMemo } from "react";
 import { useCheckoutCompleteMutation } from "@/checkout/graphql";
 import { useCheckout } from "@/checkout/hooks/useCheckout";
 import { useSubmit } from "@/checkout/hooks/useSubmit";
-import { getUrl } from "@/checkout/lib/utils/url"; // Changed from replaceUrl to getUrl
 
 export const useCheckoutComplete = () => {
 	const {
@@ -21,19 +20,19 @@ export const useCheckoutComplete = () => {
 					const order = data.order;
 
 					if (order) {
-						// FIX: Use getUrl instead of replaceUrl.
-						// replaceUrl pushes state immediately, causing the subsequent
-						// window.location.href assignment to be ignored by the browser.
-						const { newUrl } = getUrl({
-							query: {
-								order: order.id,
-								checkout: undefined, // Explicitly clear checkout param
-							},
-							replaceWholeQuery: true,
-						});
+						// FIX: Use native URL API to manipulate params safely
+						const url = new URL(window.location.href);
 
-						// This will now trigger a proper hard reload
-						window.location.href = newUrl;
+						// 1. Remove checkout ID to exit the checkout flow
+						url.searchParams.delete("checkout");
+						url.searchParams.delete("payment_intent"); // cleanup stripe params if any
+						url.searchParams.delete("redirect_status");
+
+						// 2. Add order ID to enter the confirmation flow
+						url.searchParams.set("order", order.id);
+
+						// 3. Force a hard navigation to the new URL
+						window.location.href = url.toString();
 					}
 				},
 			}),
