@@ -6,7 +6,7 @@ import { useOrder } from "@/checkout/hooks/useOrder";
 export const OrderConfirmation = () => {
 	const { order, loading } = useOrder();
 
-	// Show loader while polling (loading=false but order=null)
+	// Show loader if loading OR if order hasn't appeared yet (polling)
 	if (loading || !order) {
 		return (
 			<main className="grid grid-cols-1 gap-x-16 lg:grid-cols-2">
