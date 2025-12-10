@@ -67,6 +67,9 @@ function DropdownItem({ item, onClose }: { item: MenuItem; onClose: () => void }
 			{/* Flyout Menu (Right) */}
 			{hasChildren && isHovered && (
 				<div className="animate-in fade-in zoom-in-95 absolute left-full top-0 ml-2 w-64 rounded-xl border border-stone-100 bg-white p-2 shadow-xl duration-200">
+					{/* Safe Triangle / Bridge to prevent closing when moving cursor across gap */}
+					<div className="absolute -left-4 top-0 h-full w-4 bg-transparent" />
+
 					<div className="flex flex-col gap-1">
 						{item.children?.map((child) => <DropdownItem key={child.id} item={child} onClose={onClose} />)}
 					</div>
