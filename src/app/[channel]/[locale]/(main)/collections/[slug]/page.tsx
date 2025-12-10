@@ -1,19 +1,10 @@
 import { notFound } from "next/navigation";
 import { type ResolvingMetadata, type Metadata } from "next";
-import Link from "next/link";
-import Image from "next/image";
+
 import { ProductListByCollectionDocument, type LanguageCodeEnum } from "@/gql/graphql";
 import { executeGraphQL } from "@/lib/graphql";
-
-// --- FIX: Safe Type Extension for Translations ---
-// Avoids 'any' and ensures type safety for translation fields
-interface WithTranslation {
-	translation?: {
-		name?: string;
-		description?: string;
-	} | null;
-}
-// ------------------------------------------------
+import { StoreSidebar } from "@/ui/components/StoreSidebar";
+import { ProductCard } from "@/ui/components/ProductCard";
 
 export const generateMetadata = async (
 	props: { params: Promise<{ slug: string; channel: string; locale: string }> },
@@ -35,9 +26,6 @@ export const generateMetadata = async (
 	};
 };
 
-const formatPrice = (amount: number, currency: string) =>
-	new Intl.NumberFormat("en-IE", { style: "currency", currency }).format(amount);
-
 export default async function Page(props: {
 	params: Promise<{ slug: string; channel: string; locale: string }>;
 }) {
@@ -57,113 +45,40 @@ export default async function Page(props: {
 		notFound();
 	}
 
-	// --- FIX: Safe Type Casting ---
-	const collectionWithTranslation = collection as typeof collection & WithTranslation;
-
-	const name = collectionWithTranslation.translation?.name || collection.name;
+	const name = collection.translation?.name || collection.name;
 	const products = collection.products;
 
 	// Note: The description parsing logic was removed because 'parsedContent'
 	// was unused in the JSX, causing lint errors.
 
 	return (
-		<div className="min-h-screen bg-stone-50 text-gray-900">
+		<div className="min-h-screen bg-white text-gray-900">
 			{/* --- HEADER: Editorial Style --- */}
 			<div className="border-b border-stone-200 bg-white transition-all">
 				<div className="mx-auto max-w-[1920px] px-4 py-6 md:px-8 md:py-8">
-					<span className="mb-2 block font-mono text-xs uppercase tracking-widest text-gray-400">
+					<span className="mb-2 block font-sans text-xs uppercase tracking-widest text-gray-500">
 						Collection
 					</span>
-					<h1 className="font-serif text-3xl font-medium text-gray-900 md:text-5xl">{name}</h1>
+					<h1 className="font-serif text-3xl text-gray-900 md:text-5xl">{name}</h1>
 				</div>
 			</div>
 
 			<div className="mx-auto max-w-[1920px] px-4 pb-16 pt-8 md:px-8">
 				<div className="flex flex-col gap-8 lg:flex-row">
-					{/* --- SIDEBAR: Minimalist Filter --- */}
-					<aside className="hidden w-64 shrink-0 lg:block">
-						<div className="sticky top-32 flex flex-col gap-8">
-							<div>
-								<h3 className="mb-3 font-serif text-sm font-bold uppercase tracking-wide">Material</h3>
-								<ul className="space-y-2 font-mono text-xs text-gray-500">
-									<li className="cursor-pointer hover:text-terracotta hover:underline">Oak & Walnut</li>
-									<li className="cursor-pointer hover:text-terracotta hover:underline">Ceramic</li>
-									<li className="cursor-pointer hover:text-terracotta hover:underline">Leather</li>
-								</ul>
-							</div>
-							<div>
-								<h3 className="mb-3 font-serif text-sm font-bold uppercase tracking-wide">Origin</h3>
-								<ul className="space-y-2 font-mono text-xs text-gray-500">
-									<li className="cursor-pointer hover:text-terracotta hover:underline">Portugal</li>
-									<li className="cursor-pointer hover:text-terracotta hover:underline">Poland</li>
-									<li className="cursor-pointer hover:text-terracotta hover:underline">Denmark</li>
-								</ul>
-							</div>
-							<div>
-								<h3 className="mb-3 font-serif text-sm font-bold uppercase tracking-wide">Type</h3>
-								<ul className="space-y-2 font-mono text-xs text-gray-500">
-									<li className="cursor-pointer hover:text-terracotta hover:underline">Atelier (Handmade)</li>
-									<li className="cursor-pointer hover:text-terracotta hover:underline">
-										Brand (Manufactured)
-									</li>
-								</ul>
-							</div>
-						</div>
-					</aside>
+					{/* --- SIDEBAR: Dynamic Store Sidebar --- */}
+					<StoreSidebar channel={params.channel} locale={localeEnum} />
 
 					{/* --- MAIN CONTENT --- */}
 					<div className="flex-1">
-						{/* --- BROKEN GRID LAYOUT --- */}
-						<div className="grid grid-cols-2 gap-px border border-gray-200 bg-gray-200 sm:grid-cols-3 xl:grid-cols-4">
-							{products.edges.map(({ node: product }) => {
-								// Safe price access
-								const priceAmount = product.pricing?.priceRange?.start?.gross.amount || 0;
-								const priceCurrency = product.pricing?.priceRange?.start?.gross.currency || "EUR";
-
-								// Fix: Cast individual product safely inside the map
-								const productWithTranslation = product as typeof product & WithTranslation;
-
-								return (
-									<Link
-										key={product.id}
-										// UPDATED: Include locale
-										href={`/${params.channel}/${params.locale}/products/${product.slug}`}
-										className="group relative aspect-[3/4] bg-white transition-all duration-300 hover:z-10 focus:z-10"
-									>
-										<div className="relative h-full w-full overflow-hidden">
-											{product.thumbnail && (
-												<Image
-													src={product.thumbnail.url}
-													alt={product.thumbnail.alt || product.name}
-													fill
-													className="object-cover transition-transform duration-700 group-hover:scale-105"
-													sizes="(max-width: 768px) 50vw, 25vw"
-												/>
-											)}
-
-											{/* Hover Overlay with Editorial Vibe */}
-											<div className="absolute inset-0 flex flex-col justify-end bg-black/0 p-6 transition-colors group-hover:bg-black/10">
-												<div className="translate-y-4 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
-													<span className="bg-white px-2 py-1 font-mono text-xs uppercase text-black shadow-sm">
-														Shop Now
-													</span>
-												</div>
-											</div>
-										</div>
-
-										{/* Minimalist Info below image */}
-										<div className="mt-4 flex items-baseline justify-between">
-											<div>
-												<h3 className="font-serif text-lg font-medium">
-													{productWithTranslation.translation?.name || product.name}
-												</h3>
-												<p className="font-mono text-xs text-gray-400">{product.category?.name}</p>
-											</div>
-											<span className="font-mono text-sm">{formatPrice(priceAmount, priceCurrency)}</span>
-										</div>
-									</Link>
-								);
-							})}
+						<div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4">
+							{products.edges.map(({ node: product }) => (
+								<ProductCard
+									key={product.id}
+									product={product}
+									channel={params.channel}
+									locale={params.locale}
+								/>
+							))}
 						</div>
 					</div>
 				</div>

@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { liteClient as algoliasearch } from "algoliasearch/lite";
 import { InstantSearch, useSearchBox, useHits, Configure } from "react-instantsearch";
 import { getAlgoliaIndexName } from "@/lib/algolia-config";
@@ -59,12 +60,12 @@ function CustomSearchBox({ onFocus }: { onFocus: () => void }) {
 		<div className="relative w-full">
 			<input
 				type="text"
-				placeholder="Search..."
+				placeholder="Search products & Brands"
 				value={query}
 				onChange={(e) => refine(e.target.value)}
 				onFocus={onFocus}
 				onKeyDown={handleKeyDown}
-				className="w-full appearance-none rounded-full border border-stone-100 bg-stone-50 py-2.5 pl-4 pr-10 font-sans text-carbon transition-colors duration-200 placeholder:text-stone-400 focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta"
+				className="w-full appearance-none rounded-md border border-stone-200 bg-white py-2.5 pl-4 pr-10 font-sans text-base text-carbon shadow-sm transition-all placeholder:text-stone-400 hover:border-stone-300 focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta"
 			/>
 			{query && (
 				<button
@@ -110,8 +111,10 @@ function CustomHits({ isVisible, onClose }: { isVisible: boolean; onClose: () =>
 						onClick={onClose}
 						className="group flex items-center gap-4 border-b border-stone-100 p-4 hover:bg-stone-50"
 					>
-						<div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded bg-stone-50">
-							{imageUrl && <img src={imageUrl} alt={product.name} className="h-full w-full object-cover" />}
+						<div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded bg-stone-50">
+							{imageUrl && (
+								<Image src={imageUrl} alt={product.name} fill className="object-cover" sizes="48px" />
+							)}
 						</div>
 						<div className="min-w-0 flex-1">
 							<h4 className="truncate font-serif text-base text-carbon">{product.name}</h4>
@@ -144,7 +147,7 @@ export function SearchBar() {
 	}, []);
 
 	return (
-		<div ref={containerRef} className="relative mx-auto w-full max-w-md">
+		<div ref={containerRef} className="relative mx-auto w-full">
 			<InstantSearch searchClient={searchClient} indexName={indexName}>
 				<Configure hitsPerPage={5} />
 				<CustomSearchBox onFocus={() => setShowResults(true)} />

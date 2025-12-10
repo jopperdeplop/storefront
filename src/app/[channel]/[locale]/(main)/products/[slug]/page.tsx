@@ -10,9 +10,15 @@ import { AddButton } from "./AddButton";
 import { VariantSelector } from "@/ui/components/VariantSelector";
 import { executeGraphQL } from "@/lib/graphql";
 import { formatMoney, formatMoneyRange } from "@/lib/utils";
-import { CheckoutAddLineDocument, ProductDetailsDocument, type LanguageCodeEnum } from "@/gql/graphql";
+import {
+	CheckoutAddLineDocument,
+	ProductDetailsDocument,
+	ProductListByCategoryDocument,
+	type LanguageCodeEnum,
+} from "@/gql/graphql";
 import * as Checkout from "@/lib/checkout";
 import { LinkWithChannel } from "@/ui/atoms/LinkWithChannel";
+import { ProductCard } from "@/ui/components/ProductCard";
 
 // --- FIX: Safe Type Extensions ---
 interface WithTranslation {
@@ -134,6 +140,24 @@ export default async function Page(props: {
 	);
 	const brandValue = brandAttr?.values[0];
 
+	async function getRelatedProducts() {
+		if (!product?.category?.slug) return [];
+		const { category } = await executeGraphQL(ProductListByCategoryDocument, {
+			variables: {
+				slug: product.category.slug,
+				channel: params.channel,
+				locale: localeEnum,
+			},
+			revalidate: 60,
+		});
+
+		const allRelated = category?.products?.edges.map((e) => e.node) || [];
+		// Filter out current product and take top 4
+		return allRelated.filter((p) => p.id !== product.id).slice(0, 4);
+	}
+
+	const relatedProducts = await getRelatedProducts();
+
 	// We construct a link to your Brand Page if we can guess the slug (often name-lowercased),
 	// OR we use a search fallback.
 	// Let's try to assume slug ~ name for now, or link to search.
@@ -219,7 +243,7 @@ export default async function Page(props: {
 			: [];
 
 	return (
-		<section className="min-h-screen bg-stone-50 pb-24 text-gray-900 selection:bg-terracotta selection:text-white md:pb-0">
+		<section className="min-h-screen bg-white pb-24 text-gray-900 selection:bg-terracotta selection:text-white md:pb-0">
 			<script
 				type="application/ld+json"
 				dangerouslySetInnerHTML={{
@@ -250,7 +274,7 @@ export default async function Page(props: {
 						</div>
 
 						<div className="max-w-4xl px-6 py-16 md:px-20 md:py-24">
-							<span className="mb-4 block font-mono text-xs uppercase tracking-widest text-terracotta">
+							<span className="mb-4 block font-sans text-xs uppercase tracking-widest text-terracotta">
 								The Origin Story
 							</span>
 							<h2 className="mb-8 font-serif text-3xl text-gray-900 md:text-4xl">Material Standard.</h2>
@@ -273,7 +297,7 @@ export default async function Page(props: {
 					</div>
 
 					{/* --- RIGHT: Purchase & Context Rail (40% - Sticky) --- */}
-					<div className="relative bg-stone-50 md:col-span-5 lg:col-span-4">
+					<div className="relative bg-white md:col-span-5 lg:col-span-4">
 						<div className="flex flex-col justify-between px-6 py-8 md:sticky md:top-0 md:h-screen md:overflow-y-auto md:px-12 md:py-16">
 							<div className="mb-8">
 								{/* --- BRAND HEADER --- */}
@@ -290,32 +314,30 @@ export default async function Page(props: {
 										<div className="flex h-8 w-8 items-center justify-center rounded-full bg-terracotta/10 text-xs font-bold text-terracotta">
 											{brandName.substring(0, 2).toUpperCase()}
 										</div>
-										<span className="font-mono text-xs uppercase tracking-wide text-gray-500 transition-colors group-hover:text-terracotta">
+										<span className="font-sans text-xs uppercase tracking-wide text-gray-500 transition-colors group-hover:text-terracotta">
 											{brandName} • Official Partner
 										</span>
 									</LinkWithChannel>
 								) : (
 									<div className="mb-6 flex items-center gap-3">
 										<div className="h-8 w-8 rounded-full bg-gray-200"></div>
-										<span className="font-mono text-xs uppercase tracking-wide text-gray-500">
+										<span className="font-sans text-xs uppercase tracking-wide text-gray-500">
 											Established 2025 • Europe
 										</span>
 									</div>
 								)}
 
-								<h1 className="mb-2 font-serif text-4xl font-medium leading-tight text-gray-900 md:text-5xl">
-									{productName}
-								</h1>
-								<p className="font-mono text-sm text-gray-500">
+								<h1 className="mb-2 font-serif text-4xl text-gray-900 md:text-5xl">{productName}</h1>
+								<p className="font-sans text-sm tracking-wide text-gray-500">
 									{product.category?.name || "Utility Object"}
 								</p>
 							</div>
 
 							<div className="mb-auto">
 								<div className="mb-8 flex items-baseline gap-4 border-b border-gray-200 pb-8">
-									<span className="text-2xl font-medium text-gray-900">{price}</span>
+									<span className="font-sans text-2xl text-gray-900">{price}</span>
 									{isAvailable && (
-										<span className="flex items-center gap-2 font-mono text-xs text-emerald-600">
+										<span className="flex items-center gap-2 font-sans text-xs font-medium text-emerald-600">
 											<span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
 											In Stock
 										</span>
@@ -369,6 +391,24 @@ export default async function Page(props: {
 					</div>
 				</div>
 			</form>
+
+			{relatedProducts.length > 0 && (
+				<div className="border-t border-gray-100 bg-white px-4 py-16 md:px-8 md:py-24">
+					<div className="mx-auto max-w-[1920px]">
+						<h3 className="mb-8 font-serif text-2xl text-gray-900 md:mb-12 md:text-3xl">Curated Pairings</h3>
+						<div className="grid grid-cols-2 gap-x-4 gap-y-12 sm:grid-cols-3 lg:grid-cols-4">
+							{relatedProducts.map((relatedProduct) => (
+								<ProductCard
+									key={relatedProduct.id}
+									product={relatedProduct}
+									channel={params.channel}
+									locale={params.locale}
+								/>
+							))}
+						</div>
+					</div>
+				</div>
+			)}
 		</section>
 	);
 }

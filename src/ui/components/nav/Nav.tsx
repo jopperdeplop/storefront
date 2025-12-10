@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { UserMenuContainer } from "./components/UserMenu/UserMenuContainer";
 import { CartNavItem } from "./components/CartNavItem";
-import { NavLinks } from "./components/NavLinks";
+import { CategoryDropdown } from "./components/CategoryDropdown";
 // IMPORT THE NEW MOBILE COMPONENT
 import { MobileNavLinks } from "./components/MobileNavLinks";
 import { MobileMenu } from "./components/MobileMenu";
@@ -10,20 +10,19 @@ import { SearchBar } from "./components/SearchBar";
 // Updated to accept locale to keep previous translation fixes working
 export const Nav = ({ channel, locale }: { channel: string; locale: string }) => {
 	return (
-		<nav className="flex w-full items-center gap-4 lg:gap-6" aria-label="Main navigation">
-			{/* Desktop Navigation Links (Standard links, no plus icons) */}
-			<ul className="hidden gap-6 overflow-x-auto whitespace-nowrap md:flex lg:gap-8 lg:px-0">
-				<NavLinks channel={channel} locale={locale} />
-			</ul>
+		<nav className="flex w-full items-center gap-4 lg:gap-8" aria-label="Main navigation">
+			{/* 1. Category Dropdown (Desktop) */}
+			<div className="hidden shrink-0 lg:block">
+				<CategoryDropdown channel={channel} locale={locale} />
+			</div>
 
-			{/* Right Side Actions (Search, User, Cart) */}
-			<div className="ml-auto flex items-center gap-4 lg:gap-8">
-				{/* Search Bar (Desktop) */}
-				<div className="hidden min-w-[300px] lg:flex">
-					{/* FIXED: Removed channel prop as requested */}
-					<SearchBar />
-				</div>
+			{/* 2. Central Search Bar (Expanded) */}
+			<div className="hidden flex-1 lg:block">
+				<SearchBar />
+			</div>
 
+			{/* 3. Right Side Actions (User, Cart) */}
+			<div className="ml-auto flex items-center gap-4 lg:gap-6">
 				{/* User Account */}
 				<Suspense fallback={<div className="h-8 w-8" />}>
 					<UserMenuContainer />
@@ -32,7 +31,6 @@ export const Nav = ({ channel, locale }: { channel: string; locale: string }) =>
 				{/* Cart Icon */}
 				<div className="flex items-center">
 					<Suspense fallback={<div className="h-6 w-6" />}>
-						{/* Fixed: Added locale prop to CartNavItem */}
 						<CartNavItem channel={channel} locale={locale} />
 					</Suspense>
 				</div>

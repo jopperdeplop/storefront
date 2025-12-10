@@ -13,6 +13,7 @@ query ProductDetails($slug: String!, $channel: String!, $locale: LanguageCodeEnu
 		category {
 			id
 			name
+			slug
 		}
 		# --- UPDATED: Fetch just the reference ID ---
 		attributes {
