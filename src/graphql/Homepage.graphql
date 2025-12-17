@@ -1,4 +1,4 @@
-query HomepageContent($channel: String!, $locale: LanguageCodeEnum!) {
+query HomepageContent($channel: String!, $locale: LanguageCodeEnum!, $brandPageTypeId: [ID!]) {
 	hero: page(slug: "home-hero") {
 		title
 		content
@@ -16,7 +16,6 @@ query HomepageContent($channel: String!, $locale: LanguageCodeEnum!) {
 		}
 	}
 
-	# ... (keep the rest of the file exactly the same)
 	spotlight: page(slug: "home-spotlight") {
 		title
 		content
@@ -31,10 +30,32 @@ query HomepageContent($channel: String!, $locale: LanguageCodeEnum!) {
 		translation(languageCode: $locale) {
 			name
 		}
-		products(first: 4) {
+		products(first: 8) {
 			edges {
 				node {
 					...ProductListItem
+				}
+			}
+		}
+	}
+
+	# Fetch pages strictly of the 'Brand' Page Type
+	brands: pages(
+		filter: { pageTypes: $brandPageTypeId }
+		first: 20
+		sortBy: { field: CREATION_DATE, direction: DESC }
+	) {
+		edges {
+			node {
+				id
+				title
+				slug
+				logo: assignedAttribute(slug: "brand-logo") {
+					... on AssignedFileAttribute {
+						value {
+							url
+						}
+					}
 				}
 			}
 		}

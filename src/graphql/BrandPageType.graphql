@@ -1,0 +1,11 @@
+query BrandPageType {
+	pageTypes(filter: { search: "Brand" }, first: 1) {
+		edges {
+			node {
+				id
+				name
+				slug
+			}
+		}
+	}
+}
