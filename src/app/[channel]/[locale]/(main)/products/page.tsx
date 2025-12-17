@@ -17,6 +17,7 @@ export default async function Page(props: {
 	params: Promise<{ channel: string; locale: string }>;
 	searchParams: Promise<{
 		cursor: string | string[] | undefined;
+		before: string | string[] | undefined;
 	}>;
 }) {
 	const searchParams = await props.searchParams;
@@ -24,11 +25,18 @@ export default async function Page(props: {
 	// UPDATED: Locale Logic
 	const localeEnum = params.locale.toUpperCase() as LanguageCodeEnum;
 	const cursor = typeof searchParams.cursor === "string" ? searchParams.cursor : null;
+	const before = typeof searchParams.before === "string" ? searchParams.before : null;
 
 	const { products } = await executeGraphQL(ProductListPaginatedDocument, {
 		variables: {
-			first: ProductsPerPage,
-			after: cursor,
+			// If we have 'before', we are going backwards: use 'last'
+			// Otherwise use 'first' (default)
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+			first: (before ? undefined : ProductsPerPage) as any,
+			after: cursor, // 'cursor' is the 'after' param
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+			last: (before ? ProductsPerPage : undefined) as any,
+			before: before,
 			channel: params.channel,
 			// UPDATED: Pass locale
 			locale: localeEnum,
@@ -39,10 +47,6 @@ export default async function Page(props: {
 	if (!products) {
 		notFound();
 	}
-
-	const newSearchParams = new URLSearchParams({
-		...(products.pageInfo.endCursor && { cursor: products.pageInfo.endCursor }),
-	});
 
 	return (
 		<div className="min-h-screen bg-white text-gray-900">
@@ -83,14 +87,9 @@ export default async function Page(props: {
 						{/* --- PAGINATION --- */}
 						<div className="mt-12 border-t border-gray-200 pt-8">
 							<Pagination
-								pageInfo={{
-									...products.pageInfo,
-									hasPreviousPage: false,
-									startCursor: null,
-									// UPDATED: Pagination path
-									basePathname: `/${params.channel}/${params.locale}/products`,
-									urlSearchParams: newSearchParams,
-								}}
+								// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+								pageInfo={products.pageInfo as any}
+								basePath={`/${params.channel}/${params.locale}/products`}
 							/>
 						</div>
 					</div>

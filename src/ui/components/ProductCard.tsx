@@ -42,10 +42,10 @@ export function ProductCard({ product, channel, locale }: ProductCardProps) {
 	return (
 		<Link
 			href={`/${channel}/${locale}/products/${product.slug}`}
-			className="group relative flex flex-col overflow-hidden bg-white"
+			className="group block"
 			data-testid="ProductCard"
 		>
-			<div className="relative aspect-[4/5] overflow-hidden bg-stone-100">
+			<div className="relative aspect-[4/5] w-full overflow-hidden rounded-xl bg-gray-200">
 				{product.thumbnail ? (
 					<Image
 						src={product.thumbnail.url}
@@ -56,26 +56,23 @@ export function ProductCard({ product, channel, locale }: ProductCardProps) {
 					/>
 				) : (
 					<div className="flex h-full w-full items-center justify-center bg-stone-100 text-stone-300">
-						<span className="font-mono text-xs">No Image</span>
+						<span className="font-sans text-xs">No Image</span>
 					</div>
 				)}
 
-				{/* Quick Action Overlay */}
-				<div className="absolute inset-x-0 bottom-0 translate-y-full bg-stone-50/90 px-4 py-3 backdrop-blur-sm transition-transform duration-300 group-hover:translate-y-0">
-					<p className="text-center font-sans text-xs font-medium uppercase tracking-widest text-gray-900">
-						View Details
-					</p>
-				</div>
-			</div>
+				<div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 via-25% to-transparent transition-opacity group-hover:opacity-90" />
 
-			<div className="mt-4 flex flex-col gap-1 px-1 pb-4">
-				<div className="flex items-baseline justify-between gap-4">
-					<h3 className="font-serif text-base leading-snug text-gray-900 transition-colors group-hover:text-terracotta">
-						{product.translation?.name || product.name}
-					</h3>
-					<span className="shrink-0 font-sans text-sm text-gray-900">{formattedPrice}</span>
+				<div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
+					<div className="flex flex-col text-white">
+						<h3 className="font-serif text-xl font-medium leading-tight">
+							{product.translation?.name || product.name}
+						</h3>
+						<div className="mt-1 h-0.5 w-8 bg-terracotta opacity-0 transition-opacity group-hover:opacity-100" />
+					</div>
+					<span className="rounded bg-white/20 px-2 py-1 font-sans text-sm font-bold text-white/90 backdrop-blur-md">
+						{formattedPrice}
+					</span>
 				</div>
-				<p className="font-sans text-xs tracking-wide text-gray-500">{product.category?.name || "Object"}</p>
 			</div>
 		</Link>
 	);

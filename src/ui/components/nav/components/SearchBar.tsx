@@ -60,7 +60,7 @@ function CustomSearchBox({ onFocus }: { onFocus: () => void }) {
 		<div className="relative w-full">
 			<input
 				type="text"
-				placeholder="Search products & Brands"
+				placeholder="Search Products & Brands"
 				value={query}
 				onChange={(e) => refine(e.target.value)}
 				onFocus={onFocus}

@@ -1,16 +1,17 @@
 import { Logo } from "./Logo";
 import { Nav } from "./nav/Nav";
+import { StickyHeader } from "./StickyHeader";
 
 // Updated to accept locale (drilled from layout.tsx)
 export function Header({ channel, locale }: { channel: string; locale: string }) {
 	return (
-		<header className="sticky top-0 z-20 border-b border-stone-200 bg-white/90 backdrop-blur-md transition-all">
+		<StickyHeader>
 			<div className="mx-auto max-w-[1920px] px-4 md:px-8">
 				<div className="flex h-16 items-center justify-between gap-4 md:h-20 md:gap-8">
 					<Logo />
 					<Nav channel={channel} locale={locale} />
 				</div>
 			</div>
-		</header>
+		</StickyHeader>
 	);
 }

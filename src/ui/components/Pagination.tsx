@@ -1,67 +1,55 @@
 import Link from "next/link";
+import { type PageInfo } from "@/gql/graphql";
 
-export function Pagination({
-	pageInfo,
-}: {
-	pageInfo: {
-		hasNextPage: boolean;
-		hasPreviousPage: boolean;
-		startCursor?: string | null;
-		endCursor?: string | null;
-		basePathname: string;
-		urlSearchParams?: URLSearchParams;
-	};
-}) {
-	// --- NEXT BUTTON LOGIC ---
-	const nextSearchParams = new URLSearchParams(pageInfo.urlSearchParams?.toString());
+interface PaginationProps {
+	pageInfo: PageInfo;
+	basePath: string;
+}
 
-	// For "Next", we want to go 'after' the endCursor
+export function Pagination({ pageInfo, basePath }: PaginationProps) {
+	// --- NEXT LINK ---
+	// To go Next: We need 'cursor' = endCursor. We MUST remove 'before'.
+	const nextParams = new URLSearchParams();
 	if (pageInfo.endCursor) {
-		nextSearchParams.set("cursor", pageInfo.endCursor);
-		nextSearchParams.delete("before"); // Ensure we don't have conflicting directions
+		nextParams.set("cursor", pageInfo.endCursor);
 	}
 
-	// --- PREV BUTTON LOGIC ---
-	const prevSearchParams = new URLSearchParams(pageInfo.urlSearchParams?.toString());
-
-	// For "Prev", we want to go 'before' the startCursor
+	// --- PREV LINK ---
+	// To go Prev: We need 'before' = startCursor. We MUST remove 'cursor'.
+	const prevParams = new URLSearchParams();
 	if (pageInfo.startCursor) {
-		prevSearchParams.set("before", pageInfo.startCursor);
-		prevSearchParams.delete("cursor"); // Remove forward cursor to avoid conflict
+		prevParams.set("before", pageInfo.startCursor);
 	}
+
+	const hasNext = pageInfo.hasNextPage && !!pageInfo.endCursor;
+	const hasPrev = pageInfo.hasPreviousPage && !!pageInfo.startCursor;
 
 	return (
 		<nav className="flex items-center justify-center gap-4 border-t border-stone-200 pt-12">
-			{/* --- PREVIOUS BUTTON --- */}
-			{pageInfo.hasPreviousPage ? (
+			{/* PREVIOUS */}
+			{hasPrev ? (
 				<Link
-					href={`${pageInfo.basePathname}?${prevSearchParams.toString()}`}
-					className="group inline-flex h-12 min-w-[120px] items-center justify-center border border-gray-900 bg-white px-6 text-xs font-bold uppercase tracking-widest text-gray-900 transition-all hover:border-terracotta hover:text-terracotta"
+					href={`${basePath}?${prevParams.toString()}`}
+					className="group inline-flex h-12 min-w-[120px] items-center justify-center rounded-full border border-gray-900 bg-white px-6 font-sans text-xs font-bold uppercase tracking-widest text-gray-900 transition-all hover:border-terracotta hover:bg-stone-50 hover:text-terracotta"
 				>
 					← Prev
 				</Link>
 			) : (
-				<div
-					aria-disabled="true"
-					className="inline-flex h-12 min-w-[120px] cursor-not-allowed select-none items-center justify-center border border-stone-200 bg-stone-50 px-6 text-xs font-bold uppercase tracking-widest text-gray-300"
-				>
+				<div className="inline-flex h-12 min-w-[120px] cursor-not-allowed select-none items-center justify-center rounded-full border border-stone-200 bg-stone-50 px-6 font-sans text-xs font-bold uppercase tracking-widest text-gray-300">
 					← Prev
 				</div>
 			)}
 
-			{/* --- NEXT BUTTON --- */}
-			{pageInfo.hasNextPage ? (
+			{/* NEXT */}
+			{hasNext ? (
 				<Link
-					href={`${pageInfo.basePathname}?${nextSearchParams.toString()}`}
-					className="group inline-flex h-12 min-w-[120px] items-center justify-center border border-gray-900 bg-gray-900 px-6 text-xs font-bold uppercase tracking-widest text-white transition-all hover:border-terracotta hover:bg-terracotta"
+					href={`${basePath}?${nextParams.toString()}`}
+					className="group inline-flex h-12 min-w-[120px] items-center justify-center rounded-full border border-gray-900 bg-gray-900 px-6 font-sans text-xs font-bold uppercase tracking-widest text-white transition-all hover:border-terracotta hover:bg-terracotta"
 				>
 					Next →
 				</Link>
 			) : (
-				<div
-					aria-disabled="true"
-					className="inline-flex h-12 min-w-[120px] cursor-not-allowed select-none items-center justify-center border border-stone-200 bg-stone-50 px-6 text-xs font-bold uppercase tracking-widest text-gray-300"
-				>
+				<div className="inline-flex h-12 min-w-[120px] cursor-not-allowed select-none items-center justify-center rounded-full border border-stone-200 bg-stone-50 px-6 font-sans text-xs font-bold uppercase tracking-widest text-gray-300">
 					Next →
 				</div>
 			)}
