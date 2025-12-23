@@ -4,9 +4,10 @@ import { useCheckout } from "@/checkout/hooks/useCheckout";
 import { useSubmit } from "@/checkout/hooks/useSubmit";
 import { replaceUrl } from "@/checkout/lib/utils/url";
 
-export const useCheckoutComplete = ({ id }: { id?: string } = {}) => {
-	const { checkout } = useCheckout();
-	const checkoutId = id || checkout?.id;
+export const useCheckoutComplete = () => {
+	const {
+		checkout: { id: checkoutId },
+	} = useCheckout();
 	const [{ fetching }, checkoutComplete] = useCheckoutCompleteMutation();
 
 	const onCheckoutComplete = useSubmit<{}, typeof checkoutComplete>(
