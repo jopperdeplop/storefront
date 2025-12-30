@@ -31,7 +31,7 @@ export function UserMenu({ user }: Props) {
 			>
 				<Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right divide-y divide-neutral-200 bg-white py-1 text-start shadow ring-1 ring-neutral-200 ring-opacity-5 focus:outline-none">
 					<UserInfo user={user} />
-					<div className="flex flex-col px-1 py-1">
+					<div className="flex flex-col p-1">
 						<Menu.Item>
 							{({ active }) => (
 								<LinkWithChannel
@@ -46,7 +46,7 @@ export function UserMenu({ user }: Props) {
 							)}
 						</Menu.Item>
 					</div>
-					<div className="flex flex-col px-1 py-1">
+					<div className="flex flex-col p-1">
 						<Menu.Item>
 							{({ active }) => (
 								<form action={logout}>

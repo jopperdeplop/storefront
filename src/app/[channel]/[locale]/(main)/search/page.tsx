@@ -118,7 +118,7 @@ function SearchResults({ channel, locale }: { channel: string; locale: string })
 						href={`/${channel}/${locale}/products/${product.slug}`}
 						className="group relative aspect-[3/4] bg-white transition-all duration-300 hover:z-10 focus:z-10"
 					>
-						<div className="relative h-full w-full overflow-hidden">
+						<div className="relative size-full overflow-hidden">
 							{imageUrl && (
 								<Image
 									src={imageUrl}
@@ -129,7 +129,7 @@ function SearchResults({ channel, locale }: { channel: string; locale: string })
 								/>
 							)}
 							<div className="absolute inset-0 flex flex-col justify-end bg-black/0 p-4 transition-colors duration-300 group-hover:bg-black/5" />
-							<div className="absolute bottom-0 left-0 right-0 border-t border-stone-100 bg-white p-4">
+							<div className="absolute inset-x-0 bottom-0 border-t border-stone-100 bg-white p-4">
 								<div className="flex flex-col gap-1">
 									<h3 className="truncate font-serif text-base font-medium text-gray-900 group-hover:text-terracotta">
 										{product.name}
@@ -184,7 +184,7 @@ function CustomPagination() {
 						key={page}
 						onClick={() => refine(index)}
 						className={`
-                            flex h-8 w-8 items-center justify-center border transition-colors
+                            flex size-8 items-center justify-center border transition-colors
                             ${
 															isSelected
 																? "border-terracotta bg-terracotta text-white"
@@ -222,7 +222,7 @@ function SearchContent() {
 				<Configure query={query} hitsPerPage={20} />
 
 				<div className="border-b border-stone-200 bg-white transition-all">
-					<div className="mx-auto max-w-[1920px] px-4 py-6 md:px-8 md:py-8">
+					<div className="mx-auto max-w-[1920px] px-4 py-6 md:p-8">
 						<span className="mb-2 block font-mono text-xs uppercase tracking-widest text-gray-400">
 							Search Results
 						</span>

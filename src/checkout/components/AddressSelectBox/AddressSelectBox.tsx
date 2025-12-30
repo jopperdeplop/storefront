@@ -33,7 +33,7 @@ export const AddressSelectBox = <TFieldName extends string>({
 						onEdit();
 					}}
 					ariaLabel="edit"
-					className="s pointer-events-auto absolute right-2 top-2 h-6 w-6 p-0"
+					className="s pointer-events-auto absolute right-2 top-2 size-6 p-0"
 					label={<EditIcon />}
 				/>
 			</div>

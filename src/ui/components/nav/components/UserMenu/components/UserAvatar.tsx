@@ -14,7 +14,7 @@ export const UserAvatar = ({ user }: Props) => {
 	if (user.avatar) {
 		return (
 			<Image
-				className="h-8 w-8 rounded-full border"
+				className="size-8 rounded-full border"
 				aria-hidden="true"
 				src={user.avatar.url}
 				width={24}
@@ -26,7 +26,7 @@ export const UserAvatar = ({ user }: Props) => {
 
 	return (
 		<span
-			className="flex h-8 w-8 items-center justify-center rounded-full border bg-white text-center text-xs font-bold uppercase"
+			className="flex size-8 items-center justify-center rounded-full border bg-white text-center text-xs font-bold uppercase"
 			aria-hidden="true"
 		>
 			{label}

@@ -52,7 +52,7 @@ export default async function Page(props: {
 		<div className="min-h-screen bg-white text-gray-900">
 			{/* --- HEADER: Editorial Style (Static) --- */}
 			<div className="border-b border-stone-200 bg-white transition-all">
-				<div className="mx-auto max-w-[1920px] px-4 py-6 md:px-8 md:py-8">
+				<div className="mx-auto max-w-[1920px] px-4 py-6 md:p-8">
 					<div className="flex items-end justify-between">
 						<div>
 							<span className="mb-2 block font-sans text-xs uppercase tracking-widest text-gray-500">

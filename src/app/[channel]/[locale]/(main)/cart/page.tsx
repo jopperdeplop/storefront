@@ -84,7 +84,7 @@ export default async function Page(props: { params: Promise<{ channel: string; l
 							{checkout.lines.map((item) => (
 								<li key={item.id} className="flex gap-6 py-8 md:gap-8">
 									{/* Image: Editorial Aspect Ratio */}
-									<div className="relative aspect-[3/4] h-32 w-24 flex-shrink-0 overflow-hidden bg-white sm:h-48 sm:w-36">
+									<div className="relative aspect-[3/4] h-32 w-24 shrink-0 overflow-hidden bg-white sm:h-48 sm:w-36">
 										{item.variant?.product?.thumbnail?.url && (
 											<Image
 												src={item.variant.product.thumbnail.url}

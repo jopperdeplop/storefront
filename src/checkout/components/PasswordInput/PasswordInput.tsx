@@ -50,7 +50,7 @@ export const PasswordInputComponent = <TName extends string>({
 							ariaLabel="change password visibility"
 							onClick={() => setPasswordVisible(!passwordVisible)}
 							icon={passwordVisible ? <EyeIcon /> : <EyeHiddenIcon />}
-							className="absolute right-0 mt-px flex h-10 w-10 items-center justify-center rounded-md  text-center focus:border-neutral-300 focus:outline-none focus:ring focus:ring-neutral-200 focus:ring-opacity-50 active:border-neutral-200 active:outline-none"
+							className="absolute right-0 mt-px flex size-10 items-center justify-center rounded-md text-center  focus:border-neutral-300 focus:outline-none focus:ring focus:ring-neutral-200 focus:ring-opacity-50 active:border-neutral-200 active:outline-none"
 						/>
 					</div>
 				</label>

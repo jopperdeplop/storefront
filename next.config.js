@@ -19,9 +19,7 @@ const config = {
 			},
 		],
 	},
-	experimental: {
-		typedRoutes: false,
-	},
+	typedRoutes: false,
 	// used in the Dockerfile
 	output:
 		process.env.NEXT_OUTPUT === "standalone"

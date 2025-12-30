@@ -89,10 +89,10 @@ export const NavItem = ({ item, channel, locale }: NavItemProps) => {
 							e.preventDefault();
 							setIsExpanded(!isExpanded);
 						}}
-						className="flex h-8 w-8 items-center justify-center text-gray-400 hover:text-terracotta focus:outline-none lg:ml-2 lg:h-auto lg:w-auto"
+						className="flex size-8 items-center justify-center text-gray-400 hover:text-terracotta focus:outline-none lg:ml-2 lg:size-auto"
 						aria-label="Toggle sub-menu"
 					>
-						{isExpanded ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+						{isExpanded ? <Minus className="size-4" /> : <Plus className="size-4" />}
 					</button>
 				)}
 			</div>

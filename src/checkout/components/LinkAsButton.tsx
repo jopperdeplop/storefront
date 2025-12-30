@@ -9,7 +9,7 @@ type Props = AnchorHTMLAttributes<HTMLAnchorElement> & {
 
 export const LinkAsButton = ({ children, href, variant = "primary" }: Props) => {
 	const classes = clsx(
-		"inline-flex h-10 items-center justify-center whitespace-nowrap rounded border active:outline-none font-bold",
+		"inline-flex h-10 items-center justify-center whitespace-nowrap rounded border font-bold active:outline-none",
 		{
 			"bg-neutral-900 hover:bg-neutral-800 disabled:bg-neutral-700 text-white px-4 aria-disabled:cursor-not-allowed aria-disabled:opacity-70 hover:aria-disabled:bg-neutral-700":
 				variant === "primary",

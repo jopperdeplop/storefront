@@ -24,13 +24,13 @@ export const Nav = ({ channel, locale }: { channel: string; locale: string }) =>
 			{/* 3. Right Side Actions (User, Cart) */}
 			<div className="ml-auto flex items-center gap-4 lg:gap-6">
 				{/* User Account */}
-				<Suspense fallback={<div className="h-8 w-8" />}>
+				<Suspense fallback={<div className="size-8" />}>
 					<UserMenuContainer />
 				</Suspense>
 
 				{/* Cart Icon */}
 				<div className="flex items-center">
-					<Suspense fallback={<div className="h-6 w-6" />}>
+					<Suspense fallback={<div className="size-6" />}>
 						<CartNavItem channel={channel} locale={locale} />
 					</Suspense>
 				</div>

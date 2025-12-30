@@ -46,7 +46,7 @@ export const DeliveryMethods: React.FC<CommonSectionProps> = ({ collapsed }) => 
 						{shippingMethods?.map(
 							({ id, name, price, minimumDeliveryDays: min, maximumDeliveryDays: max }) => (
 								<SelectBox key={id} name="selectedMethodId" value={id}>
-									<div className="min-h-12 pointer-events-none flex grow flex-col justify-center">
+									<div className="pointer-events-none flex min-h-12 grow flex-col justify-center">
 										<div className="flex flex-row items-center justify-between self-stretch">
 											<p>{name}</p>
 											<p>{getFormattedMoney(price)}</p>

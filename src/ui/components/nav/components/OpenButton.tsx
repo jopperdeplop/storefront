@@ -9,15 +9,13 @@ type Props = {
 export const OpenButton = (props: Props) => {
 	return (
 		<button
-			className={clsx(
-				"flex h-8 w-8 flex-col items-center justify-center gap-1.5 self-end self-center md:hidden",
-			)}
+			className={clsx("flex size-8 flex-col items-center justify-center gap-1.5 self-center md:hidden")}
 			aria-controls={props["aria-controls"]}
 			aria-expanded={false}
 			aria-label="Open menu"
 			onClick={props.onClick}
 		>
-			<MenuIcon className="h-6 w-6 shrink-0" aria-hidden />
+			<MenuIcon className="size-6 shrink-0" aria-hidden />
 		</button>
 	);
 };

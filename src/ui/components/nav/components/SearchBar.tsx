@@ -93,7 +93,7 @@ function CustomHits({ isVisible, onClose }: { isVisible: boolean; onClose: () =>
 	if (!isVisible || hits.length === 0) return null;
 
 	return (
-		<div className="absolute left-0 right-0 top-full z-50 mt-2 max-h-[80vh] overflow-y-auto rounded-xl border border-stone-100 bg-white shadow-xl">
+		<div className="absolute inset-x-0 top-full z-50 mt-2 max-h-[80vh] overflow-y-auto rounded-xl border border-stone-100 bg-white shadow-xl">
 			{hits.map((hit) => {
 				const product = hit as unknown as ProductHit;
 
@@ -111,7 +111,7 @@ function CustomHits({ isVisible, onClose }: { isVisible: boolean; onClose: () =>
 						onClick={onClose}
 						className="group flex items-center gap-4 border-b border-stone-100 p-4 hover:bg-stone-50"
 					>
-						<div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded bg-stone-50">
+						<div className="relative size-12 shrink-0 overflow-hidden rounded bg-stone-50">
 							{imageUrl && (
 								<Image src={imageUrl} alt={product.name} fill className="object-cover" sizes="48px" />
 							)}

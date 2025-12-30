@@ -55,14 +55,14 @@ export function ProductCard({ product, channel, locale }: ProductCardProps) {
 						sizes="(max-width: 768px) 50vw, 25vw"
 					/>
 				) : (
-					<div className="flex h-full w-full items-center justify-center bg-stone-100 text-stone-300">
+					<div className="flex size-full items-center justify-center bg-stone-100 text-stone-300">
 						<span className="font-sans text-xs">No Image</span>
 					</div>
 				)}
 
 				<div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 via-25% to-transparent transition-opacity group-hover:opacity-90" />
 
-				<div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
+				<div className="absolute inset-x-4 bottom-4 flex items-end justify-between">
 					<div className="flex flex-col text-white">
 						<h3 className="font-serif text-xl font-medium leading-tight">
 							{product.translation?.name || product.name}

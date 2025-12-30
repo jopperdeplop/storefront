@@ -3,5 +3,6 @@
 	"rules": {
 		"tailwindcss/no-custom-classname": "off",
 		"tailwindcss/classnames-order": "error"
-	}
+	},
+	"plugins": ["@typescript-eslint"]
 }

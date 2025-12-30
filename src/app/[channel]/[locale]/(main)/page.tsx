@@ -228,7 +228,7 @@ export default async function Page(props: { params: Promise<{ channel: string; l
 
 						{/* Right: The Solution (Empowerment) */}
 						<div className="relative">
-							<div className="absolute -left-6 -top-6 h-full w-full rounded-2xl border border-terracotta/20 bg-transparent" />
+							<div className="absolute -left-6 -top-6 size-full rounded-2xl border border-terracotta/20 bg-transparent" />
 							<div className="relative z-10 rounded-xl bg-white p-8 shadow-xl md:p-12">
 								<span className="font-mono text-xs font-bold uppercase tracking-widest text-terracotta">
 									The New Standard
@@ -237,7 +237,7 @@ export default async function Page(props: { params: Promise<{ channel: string; l
 
 								<div className="mt-8 space-y-8">
 									<div className="flex gap-4">
-										<div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-terracotta/10 text-terracotta">
+										<div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-terracotta/10 text-terracotta">
 											🛡️
 										</div>
 										<div>
@@ -250,7 +250,7 @@ export default async function Page(props: { params: Promise<{ channel: string; l
 									</div>
 
 									<div className="flex gap-4">
-										<div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-terracotta/10 text-terracotta">
+										<div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-terracotta/10 text-terracotta">
 											🤝
 										</div>
 										<div>
@@ -264,7 +264,7 @@ export default async function Page(props: { params: Promise<{ channel: string; l
 									</div>
 
 									<div className="flex gap-4">
-										<div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-terracotta/10 text-terracotta">
+										<div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-terracotta/10 text-terracotta">
 											🌱
 										</div>
 										<div>

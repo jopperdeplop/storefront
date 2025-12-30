@@ -252,7 +252,7 @@ export default async function Page(props: {
 			/>
 
 			{/* --- BREADCRUMBS --- */}
-			<div className="border-b border-stone-200 bg-stone-50 px-4 py-4 md:px-8">
+			<div className="border-b border-stone-200 bg-stone-50 p-4 md:px-8">
 				<nav className="mx-auto flex max-w-[1920px] items-center space-x-2 font-sans text-xs uppercase tracking-widest text-gray-500">
 					<Link
 						href={`/${params.channel}/${params.locale}`}
@@ -332,7 +332,7 @@ export default async function Page(props: {
 										locale={params.locale}
 										className="group mb-6 flex items-center gap-3"
 									>
-										<div className="flex h-8 w-8 items-center justify-center rounded-full bg-terracotta text-xs font-bold text-white shadow-sm">
+										<div className="flex size-8 items-center justify-center rounded-full bg-terracotta text-xs font-bold text-white shadow-sm">
 											{brandName.substring(0, 2).toUpperCase()}
 										</div>
 										<span className="font-sans text-xs uppercase tracking-wide text-gray-500 transition-colors group-hover:text-terracotta">
@@ -341,7 +341,7 @@ export default async function Page(props: {
 									</LinkWithChannel>
 								) : (
 									<div className="mb-6 flex items-center gap-3">
-										<div className="h-8 w-8 rounded-full bg-gray-200"></div>
+										<div className="size-8 rounded-full bg-gray-200"></div>
 										<span className="font-sans text-xs uppercase tracking-wide text-gray-500">
 											Established 2025 • Europe
 										</span>
@@ -359,7 +359,7 @@ export default async function Page(props: {
 									<span className="font-serif text-3xl text-gray-900">{price}</span>
 									{isAvailable && (
 										<span className="flex items-center gap-2 font-sans text-xs font-medium uppercase tracking-wider text-emerald-600">
-											<span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
+											<span className="size-1.5 animate-pulse rounded-full bg-emerald-500" />
 											In Stock
 										</span>
 									)}
@@ -378,13 +378,13 @@ export default async function Page(props: {
 								<div className="mb-8 rounded-xl border border-white/50 bg-white/40 p-6 backdrop-blur-sm">
 									<ul className="space-y-3 text-xs font-medium text-gray-600">
 										<li className="flex items-center gap-3">
-											<span className="flex h-5 w-5 items-center justify-center rounded-full bg-terracotta/10 text-terracotta">
+											<span className="flex size-5 items-center justify-center rounded-full bg-terracotta/10 text-terracotta">
 												✓
 											</span>
 											Official Brand Partner
 										</li>
 										<li className="flex items-center gap-3">
-											<span className="flex h-5 w-5 items-center justify-center rounded-full bg-terracotta/10 text-terracotta">
+											<span className="flex size-5 items-center justify-center rounded-full bg-terracotta/10 text-terracotta">
 												✓
 											</span>
 											Direct Shipping from Europe
@@ -399,13 +399,13 @@ export default async function Page(props: {
 					</div>
 				</div>
 
-				<div className="fixed bottom-0 left-0 right-0 z-50 border-t border-stone-200 bg-white/90 p-4 backdrop-blur-lg md:hidden">
+				<div className="fixed inset-x-0 bottom-0 z-50 border-t border-stone-200 bg-white/90 p-4 backdrop-blur-lg md:hidden">
 					<div className="flex items-center gap-4">
-						<div className="flex flex-shrink-0 flex-col">
+						<div className="flex shrink-0 flex-col">
 							<span className="font-sans text-[10px] uppercase text-gray-500">Total</span>
 							<span className="font-serif text-lg text-gray-900">{price}</span>
 						</div>
-						<div className="flex-grow">
+						<div className="grow">
 							<AddButton disabled={!selectedVariantID || !selectedVariant?.quantityAvailable} />
 						</div>
 					</div>
@@ -436,7 +436,7 @@ export default async function Page(props: {
 												/>
 											)}
 											<div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 via-25% to-transparent transition-opacity group-hover:opacity-90" />
-											<div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
+											<div className="absolute inset-x-4 bottom-4 flex items-end justify-between">
 												<div className="flex flex-col text-white">
 													<h3 className="font-serif text-xl font-medium leading-tight">{name}</h3>
 													<div className="mt-1 h-0.5 w-8 bg-terracotta opacity-0 transition-opacity group-hover:opacity-100" />
