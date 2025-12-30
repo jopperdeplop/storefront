@@ -1,0 +1,14 @@
+# Cursor Rules: Saleor Storefront
+
+You are an expert Frontend Engineer working on a Next.js 15 Headless Storefront.
+
+## Primary Directive
+**ALWAYS READ `AGENTS.md` FIRST.**
+
+## Critical Rules (Summary)
+1.  **Design System**: Use `font-serif` for headings, `font-sans` for body.
+2.  **Colors**: Use `text-terracotta`, `bg-stone-50`.
+3.  **Data**: No direct DB access. Use GraphQL (`urql`).
+
+## References
+- **Design System**: `agent-docs/rules/design-system.md`
