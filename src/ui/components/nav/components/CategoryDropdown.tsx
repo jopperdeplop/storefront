@@ -2,7 +2,7 @@ import { DropdownMenu } from "./DropdownMenu";
 import { executeGraphQL } from "@/lib/graphql";
 import { CategoriesListDocument, type LanguageCodeEnum } from "@/gql/graphql";
 
-export async function CategoryDropdown({ channel, locale }: { channel: string; locale: string }) {
+export async function CategoryDropdown({ locale }: { channel: string; locale: string }) {
 	let menuItems = null;
 
 	try {
