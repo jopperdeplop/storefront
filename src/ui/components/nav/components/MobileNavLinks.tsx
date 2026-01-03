@@ -1,20 +1,41 @@
 import { NavLink } from "./NavLink";
-import { NavItem, type MenuItem } from "./NavItem"; // Import Type
+import { NavItem, type MenuItem } from "./NavItem";
 import { executeGraphQL } from "@/lib/graphql";
-import { MenuGetBySlugDocument, type LanguageCodeEnum } from "@/gql/graphql";
+import { CategoriesListDocument, type LanguageCodeEnum } from "@/gql/graphql";
 
 export const MobileNavLinks = async ({ channel, locale }: { channel: string; locale: string }) => {
-	let navLinks = null;
+	let menuItems: MenuItem[] = [];
 
 	try {
-		navLinks = await executeGraphQL(MenuGetBySlugDocument, {
+		const result = await executeGraphQL(CategoriesListDocument, {
 			variables: {
-				slug: "navbar",
-				channel,
 				locale: locale.toUpperCase() as LanguageCodeEnum,
 			},
 			revalidate: 60 * 60, // 1 hour
 		});
+
+		const categories = result?.categories?.edges.map((e) => e.node) || [];
+
+		// Map to MenuItem structure
+		menuItems = categories.map((cat) => ({
+			id: cat.id,
+			name: cat.name,
+			category: {
+				name: cat.name,
+				slug: cat.slug,
+				translation: cat.translation,
+			},
+			children:
+				cat.children?.edges.map((child) => ({
+					id: child.node.id,
+					name: child.node.name,
+					category: {
+						name: child.node.name,
+						slug: child.node.slug,
+						translation: child.node.translation,
+					},
+				})) || [],
+		})) as MenuItem[];
 	} catch (error) {
 		console.error("Failed to fetch MobileNavLinks:", error);
 		return null;
@@ -28,14 +49,8 @@ export const MobileNavLinks = async ({ channel, locale }: { channel: string; loc
 			</div>
 
 			{/* Dynamic Menu Items */}
-			{navLinks?.menu?.items?.map((item) => (
-				<NavItem
-					key={item.id}
-					// FIX: Cast item to MenuItem to satisfy strict TypeScript check
-					item={item as MenuItem}
-					channel={channel}
-					locale={locale}
-				/>
+			{menuItems.map((item) => (
+				<NavItem key={item.id} item={item} channel={channel} locale={locale} />
 			))}
 		</>
 	);
