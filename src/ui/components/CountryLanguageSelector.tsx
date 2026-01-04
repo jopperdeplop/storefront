@@ -2,7 +2,7 @@
 
 import { useParams, useRouter, usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
-import { Globe, Check, ChevronDown, Search } from "lucide-react";
+import { Check, ChevronDown, Search } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -207,7 +207,7 @@ export const CountryLanguageSelector = () => {
 		router.push(`/${channel}/${locale}/${rest}`);
 	};
 
-	const filteredChannels = Object.entries(CHANNEL_CONFIG).filter(([key, value]) =>
+	const filteredChannels = Object.entries(CHANNEL_CONFIG).filter(([, value]) =>
 		value.name.toLowerCase().includes(searchQuery.toLowerCase()),
 	);
 
