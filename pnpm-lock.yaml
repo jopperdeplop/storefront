@@ -92,6 +92,9 @@ importers:
       sharp:
         specifier: 0.33.2
         version: 0.33.2
+      tailwind-merge:
+        specifier: 3.4.0
+        version: 3.4.0
       ts-invariant:
         specifier: 0.10.3
         version: 0.10.3
@@ -3767,6 +3770,9 @@ packages:
   sync-fetch@0.6.0-2:
     resolution: {integrity: sha512-c7AfkZ9udatCuAy9RSfiGPpeOKKUAUK5e1cXadLOGUjasdxqYqAK0jTNkM/FSEyJ3a5Ra27j/tw/PS0qLmaF/A==}
     engines: {node: '>=18'}
+
+  tailwind-merge@3.4.0:
+    resolution: {integrity: sha512-uSaO4gnW+b3Y2aWoWfFpX62vn2sR3skfhbjsEnaBI81WD1wBLlHZe5sWf0AqjksNdYTbGBEd0UasQMT3SNV15g==}
 
   tailwindcss@3.4.0:
     resolution: {integrity: sha512-VigzymniH77knD1dryXbyxR+ePHihHociZbXnLZHUyzf2MMs2ZVqlUrZ3FvpXP8pno9JzmILt1sZPD19M3IxtA==}
@@ -8120,6 +8126,8 @@ snapshots:
       node-fetch: 3.3.2
       timeout-signal: 2.0.0
       whatwg-mimetype: 4.0.0
+
+  tailwind-merge@3.4.0: {}
 
   tailwindcss@3.4.0:
     dependencies:
