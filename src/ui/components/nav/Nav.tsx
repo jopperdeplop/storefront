@@ -5,7 +5,7 @@ import { CartNavItem } from "./components/CartNavItem";
 import { CategoryDropdown } from "./components/CategoryDropdown";
 // IMPORT THE NEW MOBILE COMPONENT
 import { MobileNavLinks } from "./components/MobileNavLinks";
-const MobileMenu = dynamic(() => import("./components/MobileMenu").then((m) => m.MobileMenu), { ssr: false });
+const MobileMenu = dynamic(() => import("./components/MobileMenu").then((m) => m.MobileMenu));
 import { SearchBar } from "./components/SearchBar";
 
 // Updated to accept locale to keep previous translation fixes working
