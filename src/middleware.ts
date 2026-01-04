@@ -1,53 +1,90 @@
 import { type NextRequest, NextResponse } from "next/server";
 
-const CHANNEL_CONFIG = {
-	// Eurozone Channel: Supports languages for all 20 Eurozone countries
-	eur: [
-		"en", // Ireland, Malta (English)
-		"nl", // Netherlands, Belgium (Dutch)
-		"de", // Germany, Austria, Belgium, Luxembourg (German)
-		"fr", // France, Belgium, Luxembourg (French)
-		"it", // Italy (Italian)
-		"es", // Spain (Spanish)
-		"pt", // Portugal (Portuguese)
-		"fi", // Finland (Finnish)
-		"et", // Estonia (Estonian)
-		"lv", // Latvia (Latvian)
-		"lt", // Lithuania (Lithuanian)
-		"sk", // Slovakia (Slovak)
-		"sl", // Slovenia (Slovenian)
-		"el", // Greece, Cyprus (Greek)
-		"hr", // Croatia (Croatian)
-		"mt", // Malta (Maltese)
-	],
-	"default-channel": ["en"], // Global fallback
+const CHANNEL_CONFIG: Record<string, string[]> = {
+	austria: ["de", "en"],
+	belgium: ["nl", "fr", "de", "en"],
+	croatia: ["hr", "en"],
+	cyprus: ["el", "en"],
+	estonia: ["et", "en"],
+	finland: ["fi", "en"],
+	france: ["fr", "en"],
+	germany: ["de", "en"],
+	greece: ["el", "en"],
+	ireland: ["en"],
+	italy: ["it", "en"],
+	latvia: ["lv", "en"],
+	lithuania: ["lt", "en"],
+	luxembourg: ["fr", "de", "en"],
+	malta: ["mt", "en"],
+	netherlands: ["nl", "en"],
+	portugal: ["pt", "en"],
+	slovakia: ["sk", "en"],
+	slovenia: ["sl", "en"],
+	spain: ["es", "en"],
+	"default-channel": ["en"],
+};
+
+const COUNTRY_TO_CHANNEL: Record<string, string> = {
+	AT: "austria",
+	BE: "belgium",
+	HR: "croatia",
+	CY: "cyprus",
+	EE: "estonia",
+	FI: "finland",
+	FR: "france",
+	DE: "germany",
+	GR: "greece",
+	IE: "ireland",
+	IT: "italy",
+	LV: "latvia",
+	LT: "lithuania",
+	LU: "luxembourg",
+	MT: "malta",
+	NL: "netherlands",
+	PT: "portugal",
+	SK: "slovakia",
+	SI: "slovenia",
+	ES: "spain",
 };
 
 const DEFAULT_LOCALE = "en";
-const DEFAULT_CHANNEL = "eur";
+const DEFAULT_CHANNEL = "netherlands"; // Sensible fallback for EUR
 
 /**
- * Gets the best matching locale from the Accept-Language header that is supported
- * by the provided allowedLocales list. Falls back to DEFAULT_LOCALE.
+ * Gets the best matching locale from the Accept-Language header,
+ * cookie, or defaults.
  */
 const getPreferredLocale = (request: NextRequest, allowedLocales: string[]): string => {
-	const acceptLanguage = request.headers.get("accept-language");
-
-	if (!acceptLanguage) {
-		return DEFAULT_LOCALE;
+	// 1. Check Cookie first (user choice)
+	const cookieLocale = request.cookies.get("NEXT_LOCALE")?.value;
+	if (cookieLocale && allowedLocales.includes(cookieLocale)) {
+		return cookieLocale;
 	}
 
-	// Parse the Accept-Language header (e.g., 'fr-CH, fr;q=0.9, en;q=0.8')
-	// and find the best match in the allowed locales.
-	const userPreferred = acceptLanguage
-		.split(",")
-		.map((lang) => lang.trim().split(";")[0].split("-")[0])
-		.filter(Boolean);
+	// 2. Check Accept-Language header
+	const acceptLanguage = request.headers.get("accept-language");
+	if (acceptLanguage) {
+		const userPreferred = acceptLanguage
+			.split(",")
+			.map((lang) => lang.trim().split(";")[0].split("-")[0])
+			.filter(Boolean);
 
-	// Find the first preferred locale that is supported by the channel
-	const bestMatch = userPreferred.find((lang) => allowedLocales.includes(lang));
+		const bestMatch = userPreferred.find((lang) => allowedLocales.includes(lang));
+		if (bestMatch) return bestMatch;
+	}
 
-	return bestMatch || DEFAULT_LOCALE;
+	return allowedLocales[0] || DEFAULT_LOCALE;
+};
+
+/**
+ * Detects the user's country from Vercel headers or fallback.
+ */
+const detectChannel = (request: NextRequest): string => {
+	const countryCode = request.headers.get("x-vercel-ip-country");
+	if (countryCode && COUNTRY_TO_CHANNEL[countryCode]) {
+		return COUNTRY_TO_CHANNEL[countryCode];
+	}
+	return DEFAULT_CHANNEL;
 };
 
 export function middleware(request: NextRequest) {
@@ -63,41 +100,39 @@ export function middleware(request: NextRequest) {
 
 	// 2. Parse URL segments
 	const segments = pathname.split("/").filter(Boolean);
-	const currentChannel = segments[0]; // 'eur' or 'default-channel'
-	const currentLocale = segments[1]; // 'nl', 'de', 'fr', etc.
+	const currentChannel = segments[0];
+	const currentLocale = segments[1];
 
-	// 3. Channel Validation
-	const validChannels = Object.keys(CHANNEL_CONFIG);
-	if (!validChannels.includes(currentChannel)) {
-		// --- MODIFIED LOGIC: Determine locale from headers and redirect to best match ---
-
-		// 3.1. Determine the best locale for the desired default channel ('eur')
-		const allowedLocalesForDefaultChannel = CHANNEL_CONFIG[DEFAULT_CHANNEL as keyof typeof CHANNEL_CONFIG];
-		const preferredLocale = getPreferredLocale(request, allowedLocalesForDefaultChannel);
-
-		// 3.2. Redirect to default channel/preferred locale if missing or invalid
+	// 3. SEO Legacy Redirects (/eur/* -> /netherlands/*)
+	if (currentChannel === "eur") {
 		const url = request.nextUrl.clone();
-		// Construct new path: /[DEFAULT_CHANNEL]/[preferredLocale]/[originalPath]
-		url.pathname = `/${DEFAULT_CHANNEL}/${preferredLocale}${pathname}`;
-		return NextResponse.redirect(url);
-		// ----------------------------------------------------------------------------
+		const rest = segments.slice(1).join("/");
+		url.pathname = `/${DEFAULT_CHANNEL}/${rest}`;
+		return NextResponse.redirect(url, 301);
 	}
 
-	// 4. Locale Validation
-	const allowedLocales = CHANNEL_CONFIG[currentChannel as keyof typeof CHANNEL_CONFIG];
+	// 4. Channel Validation & Geo-Detection
+	const validChannels = Object.keys(CHANNEL_CONFIG);
+	if (!validChannels.includes(currentChannel)) {
+		const detectedChannel = detectChannel(request);
+		const allowedLocales = CHANNEL_CONFIG[detectedChannel];
+		const preferredLocale = getPreferredLocale(request, allowedLocales);
 
-	// If locale is missing or invalid for this channel, redirect to default (first allowed)
+		const url = request.nextUrl.clone();
+		url.pathname = `/${detectedChannel}/${preferredLocale}${pathname}`;
+		return NextResponse.redirect(url);
+	}
+
+	// 5. Locale Validation
+	const allowedLocales = CHANNEL_CONFIG[currentChannel];
 	if (!currentLocale || !allowedLocales.includes(currentLocale)) {
-		const defaultLocale = allowedLocales[0];
+		const preferredLocale = getPreferredLocale(request, allowedLocales);
 		const url = request.nextUrl.clone();
 
-		// Construct new path: /[channel]/[defaultLocale]/[rest...]
-		// Only strip the invalid locale if it was actually a 2-letter code (avoids eating part of the path)
 		const isInvalidLocale = currentLocale && currentLocale.length === 2;
-
 		const restOfPath = isInvalidLocale ? segments.slice(2).join("/") : segments.slice(1).join("/");
 
-		url.pathname = `/${currentChannel}/${defaultLocale}/${restOfPath ? "/" + restOfPath : ""}`;
+		url.pathname = `/${currentChannel}/${preferredLocale}/${restOfPath ? "/" + restOfPath : ""}`;
 		return NextResponse.redirect(url);
 	}
 

@@ -30,6 +30,11 @@
 - **Automated Guardrails**:
   - **Linting**: `eslint-plugin-tailwindcss` is active. Order your classes!
   - **Type Safety**: Gaps in `graphql-codegen` will cause build failures.
+- **Multi-Channel & Localization**:
+  - **Geo-Detection**: Middleware uses IP/Headers to detect country and redirect to `/[country]/[language]`.
+  - **Routing**: `[channel]` in URL corelates to Saleor channel slugs (e.g., `france`, `germany`).
+  - **Persistence**: `NEXT_LOCALE` cookie stores user language preference.
+  - **SEO**: `hreflang` tags must be generated for all 20 country/language combinations.
 - **Documentation Maintenance**: If you add new tech or struggle with a task, YOU MUST fix the docs (`AGENTS.md`) for the next agent. Keep it living.
 
 ## 6. Ecosystem Links
