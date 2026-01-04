@@ -62,7 +62,7 @@ export default async function Page(props: { params: Promise<{ channel: string; l
 			<div className="mx-auto max-w-[1920px] p-4 md:p-8">
 				{/* Header: Editorial Style */}
 				<div className="mb-12 border-b border-gray-200 pb-6">
-					<span className="mb-2 block font-mono text-xs uppercase tracking-widest text-gray-400">
+					<span className="mb-2 block font-mono text-xs uppercase tracking-widest text-gray-500">
 						Order Review
 					</span>
 					<h1 className="font-serif text-3xl font-medium md:text-5xl">
@@ -111,7 +111,7 @@ export default async function Page(props: { params: Promise<{ channel: string; l
 													</h2>
 												</LinkWithChannel>
 
-												<div className="flex flex-col gap-1 font-mono text-xs uppercase tracking-wider text-gray-500">
+												<div className="flex flex-col gap-1 font-mono text-xs uppercase tracking-wider text-gray-600">
 													<span>{item.variant?.product?.category?.name}</span>
 													{item.variant.name !== item.variant.id && Boolean(item.variant.name) && (
 														<span>Spec: {item.variant.name}</span>
@@ -130,7 +130,7 @@ export default async function Page(props: { params: Promise<{ channel: string; l
 											<div className="border border-gray-300 bg-white px-4 py-2 font-mono text-sm">
 												QTY: {item.quantity}
 											</div>
-											<div className="cursor-pointer text-xs font-bold uppercase tracking-widest text-gray-400 transition-colors hover:text-red-600">
+											<div className="cursor-pointer text-xs font-bold uppercase tracking-widest text-gray-500 transition-colors hover:text-red-600">
 												<DeleteLineButton checkoutId={checkoutId} lineId={item.id} />
 											</div>
 										</div>
@@ -156,7 +156,7 @@ export default async function Page(props: { params: Promise<{ channel: string; l
 								</div>
 								<div className="flex items-center justify-between">
 									<span className="font-mono text-xs uppercase text-gray-500">Shipping</span>
-									<span className="font-mono text-xs text-gray-400">Calculated at Checkout</span>
+									<span className="font-mono text-xs text-gray-500">Calculated at Checkout</span>
 								</div>
 							</div>
 
@@ -180,7 +180,7 @@ export default async function Page(props: { params: Promise<{ channel: string; l
 							</div>
 
 							<div className="mt-6 space-y-2 text-center">
-								<p className="font-mono text-[10px] uppercase text-gray-400">Secure SSL Encryption</p>
+								<p className="font-mono text-[10px] uppercase text-gray-500">Secure SSL Encryption</p>
 								<div className="flex justify-center gap-2 opacity-50 grayscale">
 									<div className="h-4 w-6 rounded bg-gray-300"></div>
 									<div className="h-4 w-6 rounded bg-gray-300"></div>

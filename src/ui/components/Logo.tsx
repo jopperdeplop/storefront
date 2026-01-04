@@ -15,9 +15,9 @@ export const Logo = () => {
 
 	if (pathname === "/") {
 		return (
-			<h1 className="flex items-center" aria-label="homepage">
+			<span className="flex items-center" aria-label="homepage">
 				{BrandMark}
-			</h1>
+			</span>
 		);
 	}
 	return (

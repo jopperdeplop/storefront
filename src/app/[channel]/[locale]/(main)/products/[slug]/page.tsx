@@ -293,6 +293,7 @@ export default async function Page(props: {
 										className="object-contain p-8 mix-blend-multiply"
 										sizes="(max-width: 768px) 100vw, 60vw"
 										priority={idx === 0}
+										fetchPriority={idx === 0 ? "high" : undefined}
 									/>
 								</div>
 							))}

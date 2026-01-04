@@ -76,7 +76,7 @@ export async function Footer({ channel, locale }: { channel: string; locale: str
 											<li key={child.id}>
 												<LinkWithChannel
 													href={href || "/"}
-													className="text-sm text-gray-500 decoration-terracotta underline-offset-4 transition-colors hover:text-terracotta hover:underline"
+													className="text-sm text-gray-600 decoration-terracotta underline-offset-4 transition-colors hover:text-terracotta hover:underline"
 												>
 													{label}
 												</LinkWithChannel>
@@ -91,7 +91,7 @@ export async function Footer({ channel, locale }: { channel: string; locale: str
 
 				{/* --- TRUST SIGNALS --- */}
 				<div className="mb-12 border-b border-gray-200 pb-8">
-					<p className="mb-4 font-mono text-xs uppercase tracking-widest text-gray-400">
+					<p className="mb-4 font-mono text-xs uppercase tracking-widest text-gray-500">
 						Verified European Logistics & Payment
 					</p>
 					<div className="flex flex-wrap gap-4 opacity-60 grayscale transition-all hover:opacity-100 hover:grayscale-0">
@@ -120,19 +120,19 @@ export async function Footer({ channel, locale }: { channel: string; locale: str
 						<span className="font-serif text-2xl font-bold leading-none text-gray-900">
 							Salp<span className="text-terracotta">.</span>
 						</span>
-						<p className="font-mono text-xs text-gray-500">&copy; {currentYear} • Quality as a Service.</p>
+						<p className="font-mono text-xs text-gray-600">&copy; {currentYear} • Quality as a Service.</p>
 					</div>
 
 					{/* Currency & Credits */}
 					<div className="flex flex-col gap-4 md:items-end">
 						{channels?.channels && (
 							<div className="text-sm">
-								<span className="mr-2 font-mono text-xs uppercase text-gray-400">Region:</span>
+								<span className="mr-2 font-mono text-xs uppercase text-gray-500">Region:</span>
 								<ChannelSelect channels={channels.channels} />
 							</div>
 						)}
 
-						<p className="flex items-center gap-2 font-mono text-xs uppercase text-gray-400">
+						<p className="flex items-center gap-2 font-mono text-xs uppercase text-gray-500">
 							<span>Powered by</span>
 							<Link
 								target="_blank"

@@ -163,6 +163,7 @@ export default async function Page(props: { params: Promise<{ channel: string; l
 						fill
 						className="object-cover"
 						priority
+						fetchPriority="high"
 					/>
 				</div>
 				<div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30" />
@@ -202,13 +203,13 @@ export default async function Page(props: { params: Promise<{ channel: string; l
 					<div className="mx-auto grid max-w-7xl grid-cols-1 gap-16 lg:grid-cols-2 lg:gap-24">
 						{/* Left: The Problem (Middlemen/Knockoffs) */}
 						<div className="flex flex-col justify-center space-y-8">
-							<span className="font-mono text-xs font-bold uppercase tracking-widest text-gray-400">
+							<span className="font-mono text-xs font-bold uppercase tracking-widest text-gray-500">
 								The OLD Way
 							</span>
 							<h2 className="font-serif text-4xl leading-tight text-gray-900 md:text-5xl">
-								Lost in <span className="text-gray-400 line-through">Middlemen.</span>
+								Lost in <span className="text-gray-500 line-through">Middlemen.</span>
 								<br />
-								Drowned in <span className="text-gray-400 line-through">Knockoffs.</span>
+								Drowned in <span className="text-gray-500 line-through">Knockoffs.</span>
 							</h2>
 							<p className="max-w-md text-lg font-light leading-relaxed text-gray-600">
 								Traditional retail is broken. Between the factory and your front door, a chain of middlemen
@@ -219,7 +220,7 @@ export default async function Page(props: { params: Promise<{ channel: string; l
 							</p>
 
 							<div className="border-l-2 border-gray-200 pl-6">
-								<p className="font-serif text-2xl italic text-gray-400">
+								<p className="font-serif text-2xl italic text-gray-500">
 									&quot;Quality is not an act, it is a habit. But in a race to the bottom, habits are the
 									first to break.&quot;
 								</p>
@@ -286,7 +287,7 @@ export default async function Page(props: { params: Promise<{ channel: string; l
 			{brandItems.length > 0 && (
 				<section className="overflow-hidden bg-stone-100 py-8 md:py-16">
 					<div className="mx-auto mb-6 max-w-7xl px-4 text-center md:mb-10 md:px-8">
-						<span className="font-mono text-xs uppercase tracking-[0.3em] text-gray-500">
+						<span className="font-mono text-xs uppercase tracking-[0.3em] text-gray-600">
 							Verified European Partners
 						</span>
 					</div>
