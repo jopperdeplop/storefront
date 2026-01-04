@@ -17,6 +17,18 @@ query CategoriesList($locale: LanguageCodeEnum!) {
 							translation(languageCode: $locale) {
 								name
 							}
+							children(first: 20) {
+								edges {
+									node {
+										id
+										name
+										slug
+										translation(languageCode: $locale) {
+											name
+										}
+									}
+								}
+							}
 						}
 					}
 				}

@@ -14,10 +14,8 @@ export const MobileNavLinks = async ({ channel, locale }: { channel: string; loc
 			revalidate: 60 * 60, // 1 hour
 		});
 
-		const categories = result?.categories?.edges.map((e) => e.node) || [];
-
-		// Map to MenuItem structure
-		menuItems = categories.map((cat) => ({
+		// Helper function to recursively map categories
+		const mapCategory = (cat: any): MenuItem => ({
 			id: cat.id,
 			name: cat.name,
 			category: {
@@ -25,17 +23,13 @@ export const MobileNavLinks = async ({ channel, locale }: { channel: string; loc
 				slug: cat.slug,
 				translation: cat.translation,
 			},
-			children:
-				cat.children?.edges.map((child) => ({
-					id: child.node.id,
-					name: child.node.name,
-					category: {
-						name: child.node.name,
-						slug: child.node.slug,
-						translation: child.node.translation,
-					},
-				})) || [],
-		})) as MenuItem[];
+			children: cat.children?.edges?.map((edge: any) => mapCategory(edge.node)) || [],
+		});
+
+		const categories = result?.categories?.edges.map((e) => e.node) || [];
+
+		// Map to MenuItem structure using recursion
+		menuItems = categories.map(mapCategory);
 	} catch (error) {
 		console.error("Failed to fetch MobileNavLinks:", error);
 		return null;

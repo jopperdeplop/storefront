@@ -13,10 +13,8 @@ export async function CategoryDropdown({ locale }: { channel: string; locale: st
 			revalidate: 60 * 60,
 		});
 
-		const categories = result?.categories?.edges.map((e) => e.node) || [];
-
-		// Map Categories to MenuItem structure
-		menuItems = categories.map((cat) => ({
+		// Helper function to recursively map categories
+		const mapCategory = (cat: any): any => ({
 			id: cat.id,
 			name: cat.name,
 			category: {
@@ -24,17 +22,13 @@ export async function CategoryDropdown({ locale }: { channel: string; locale: st
 				slug: cat.slug,
 				translation: cat.translation,
 			},
-			children:
-				cat.children?.edges.map((child) => ({
-					id: child.node.id,
-					name: child.node.name,
-					category: {
-						name: child.node.name,
-						slug: child.node.slug,
-						translation: child.node.translation,
-					},
-				})) || [],
-		}));
+			children: cat.children?.edges?.map((edge: any) => mapCategory(edge.node)) || [],
+		});
+
+		const categories = result?.categories?.edges.map((e) => e.node) || [];
+
+		// Map Categories to MenuItem structure using recursion
+		menuItems = categories.map(mapCategory);
 	} catch (error) {
 		console.error("Failed to fetch categories:", error);
 	}

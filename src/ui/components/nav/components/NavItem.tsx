@@ -55,9 +55,10 @@ interface NavItemProps {
 	item: MenuItem;
 	channel: string;
 	locale: string;
+	level?: number;
 }
 
-export const NavItem = ({ item, channel, locale }: NavItemProps) => {
+export const NavItem = ({ item, channel, locale, level = 0 }: NavItemProps) => {
 	const [isExpanded, setIsExpanded] = useState(false);
 
 	const hasChildren = item.children && item.children.length > 0;
@@ -69,16 +70,22 @@ export const NavItem = ({ item, channel, locale }: NavItemProps) => {
 		closeBtn?.click();
 	};
 
+	const isRoot = level === 0;
+
 	return (
-		<li className="w-full border-b border-stone-200 last:border-0 lg:w-auto lg:border-none">
-			<div className="group flex items-center justify-between py-4 lg:py-0">
+		<li
+			className={`w-full ${isRoot ? "border-b border-stone-200 last:border-0" : ""} lg:w-auto lg:border-none`}
+		>
+			<div className={`group flex items-center justify-between ${isRoot ? "py-4" : "py-2"} lg:py-0`}>
 				{/* Pass channel/locale explicitely to avoid unused var warning and ensure link accuracy */}
 				<LinkWithChannel
 					href={href}
 					channel={channel}
 					locale={locale}
 					onClick={hasChildren ? undefined : closeMenu}
-					className="text-sm font-medium uppercase tracking-wider text-gray-900 transition-colors hover:text-terracotta md:text-base"
+					className={`font-medium uppercase tracking-wider transition-colors hover:text-terracotta ${
+						isRoot ? "text-sm text-gray-900 md:text-base" : "text-xs text-gray-500"
+					}`}
 				>
 					{label}
 				</LinkWithChannel>
@@ -99,25 +106,16 @@ export const NavItem = ({ item, channel, locale }: NavItemProps) => {
 
 			{/* Sub-Menu */}
 			{hasChildren && isExpanded && item.children && (
-				<ul className="animate-in slide-in-from-top-1 fade-in ml-1 flex flex-col gap-3 border-l-2 border-stone-100 pb-4 pl-4 duration-200 lg:absolute lg:left-0 lg:top-full lg:w-48 lg:border lg:border-gray-200 lg:bg-white lg:p-4 lg:shadow-xl">
-					{item.children.map((child) => {
-						const childHref = getLinkPath(child);
-						const childLabel = getLabel(child);
-
-						return (
-							<li key={child.id}>
-								<LinkWithChannel
-									href={childHref}
-									channel={channel}
-									locale={locale}
-									onClick={closeMenu}
-									className="block font-sans text-xs font-medium uppercase tracking-wide text-gray-500 transition-colors hover:text-terracotta"
-								>
-									{childLabel}
-								</LinkWithChannel>
-							</li>
-						);
-					})}
+				<ul
+					className={`animate-in slide-in-from-top-1 fade-in flex flex-col duration-200 ${
+						isRoot
+							? "ml-1 gap-1 border-l-2 border-stone-100 pb-4 pl-4"
+							: "ml-2 gap-1 border-l border-stone-100 pb-2 pl-3"
+					} lg:absolute lg:left-0 lg:top-full lg:w-48 lg:border lg:border-gray-200 lg:bg-white lg:p-4 lg:shadow-xl`}
+				>
+					{item.children.map((child) => (
+						<NavItem key={child.id} item={child} channel={channel} locale={locale} level={level + 1} />
+					))}
 				</ul>
 			)}
 		</li>
