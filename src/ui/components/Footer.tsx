@@ -1,12 +1,11 @@
 import Link from "next/link";
 import Image from "next/image";
 import { LinkWithChannel } from "../atoms/LinkWithChannel";
-import { ChannelsListDocument, MenuGetBySlugDocument, type LanguageCodeEnum } from "@/gql/graphql";
+import { MenuGetBySlugDocument, type LanguageCodeEnum } from "@/gql/graphql";
 import { executeGraphQL } from "@/lib/graphql";
 
 export async function Footer({ channel, locale }: { channel: string; locale: string }) {
 	let footerLinks = null;
-	let channels = null;
 
 	// FIX 1: Format Locale for Saleor (e.g. "en-us" -> "EN_US")
 	const saleorLocale = locale.toUpperCase().replace("-", "_") as LanguageCodeEnum;
@@ -21,18 +20,8 @@ export async function Footer({ channel, locale }: { channel: string; locale: str
 			revalidate: 60 * 60 * 24, // Cache for 24 hours
 		});
 
-		const channelsPromise = process.env.SALEOR_APP_TOKEN
-			? executeGraphQL(ChannelsListDocument, {
-					withAuth: false,
-					headers: {
-						Authorization: `Bearer ${process.env.SALEOR_APP_TOKEN}`,
-					},
-				})
-			: Promise.resolve(null);
-
-		const [footerResult, channelsResult] = await Promise.all([footerPromise, channelsPromise]);
+		const footerResult = await footerPromise;
 		footerLinks = footerResult;
-		channels = channelsResult;
 	} catch (error) {
 		console.error("Failed to fetch Footer data:", error);
 	}
