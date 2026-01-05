@@ -7,6 +7,7 @@ import { CategoryDropdown } from "./components/CategoryDropdown";
 import { MobileNavLinks } from "./components/MobileNavLinks";
 const MobileMenu = dynamic(() => import("./components/MobileMenu").then((m) => m.MobileMenu));
 import { SearchBar } from "./components/SearchBar";
+import { CountryLanguageSelector } from "../CountryLanguageSelector";
 
 // Updated to accept locale to keep previous translation fixes working
 export const Nav = ({ channel, locale }: { channel: string; locale: string }) => {
@@ -29,6 +30,11 @@ export const Nav = ({ channel, locale }: { channel: string; locale: string }) =>
 					<UserMenuContainer />
 				</Suspense>
 
+				{/* NEW: Region Selector integrated into actions */}
+				<div className="hidden lg:block">
+					<CountryLanguageSelector />
+				</div>
+
 				{/* Cart Icon */}
 				<div className="flex items-center">
 					<Suspense fallback={<div className="size-6" />}>
@@ -40,7 +46,10 @@ export const Nav = ({ channel, locale }: { channel: string; locale: string }) =>
 			{/* Mobile Menu Trigger */}
 			<Suspense>
 				<MobileMenu>
-					{/* FIXED: Removed channel prop */}
+					{/* Mobile Region Switcher */}
+					<div className="mb-4 border-b border-stone-100 pb-4 lg:hidden">
+						<CountryLanguageSelector />
+					</div>
 					<SearchBar />
 					{/* UPDATED: Use MobileNavLinks here to get the dropdowns/plus icons */}
 					<MobileNavLinks channel={channel} locale={locale} />

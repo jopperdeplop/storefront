@@ -210,61 +210,60 @@ export const CountryLanguageSelector = () => {
 	);
 
 	return (
-		<div className="relative inline-block text-left" ref={dropdownRef}>
-			{/* Trigger Button: Premium & Compact */}
+		<div className="relative flex items-center" ref={dropdownRef}>
+			{/* Trigger Button: Minimal & Integrated */}
 			<button
 				onClick={() => setIsOpen(!isOpen)}
 				className={cn(
-					"flex items-center gap-2 rounded-lg border border-stone-200 bg-white/95 px-3 py-1.5 text-xs font-semibold tracking-tight transition-all hover:border-stone-300 hover:bg-stone-50 active:scale-95 sm:text-sm",
-					isOpen && "border-stone-400 bg-stone-50 ring-2 ring-stone-100",
+					"flex h-9 items-center gap-1.5 rounded-full px-2 text-[13px] font-semibold tracking-tight transition-all active:scale-95",
+					isOpen
+						? "bg-stone-100 text-stone-900 shadow-inner"
+						: "text-stone-500 hover:bg-stone-50 hover:text-stone-900",
 				)}
 			>
 				<span className="text-base leading-none">{config.flag}</span>
-				<span className="hidden leading-none text-stone-900 sm:inline">{config.name}</span>
-				<span className="mx-0.5 text-stone-300">/</span>
-				<span className="leading-none text-stone-600">{currentLocale.toUpperCase()}</span>
+				<span className="leading-none">{currentLocale.toUpperCase()}</span>
 				<ChevronDown
 					className={cn(
-						"size-3.5 text-stone-400 transition-transform duration-300",
+						"size-3 text-stone-300 transition-transform duration-300",
 						isOpen && "rotate-180 text-stone-600",
 					)}
 				/>
 			</button>
 
-			{/* Dropdown Panel: Glassmorphism & Editorial Styling */}
+			{/* Dropdown Panel: True Overlay */}
 			{isOpen && (
 				<div
 					className={cn(
-						"animate-in fade-in zoom-in-95 bg-white/98 -right-20 top-full z-[100] mt-3 w-[300px] origin-top-right overflow-hidden rounded-2xl border border-stone-200 shadow-[0_20px_50px_rgba(0,0,0,0.1)] backdrop-blur-xl duration-200 sm:right-0 sm:w-[340px]",
+						"animate-in fade-in zoom-in-95 absolute right-0 top-full z-[1000] mt-2 w-[280px] origin-top-right overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-[0_20px_60px_-10px_rgba(0,0,0,0.2)] backdrop-blur-xl duration-200 sm:w-[320px]",
 					)}
 				>
 					{/* Search Header */}
-					<div className="border-b border-stone-100 bg-stone-50/50 p-4">
+					<div className="border-b border-stone-100 bg-stone-50/50 p-3">
 						<div className="group relative">
-							<Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-stone-400 transition-colors group-focus-within:text-terracotta" />
+							<Search className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-stone-400" />
 							<input
 								type="text"
 								placeholder="Search region..."
-								autoFocus
 								value={searchQuery}
 								onChange={(e) => setSearchQuery(e.target.value)}
-								className="w-full rounded-xl border-stone-200 bg-white py-2 pl-9 pr-4 text-sm ring-stone-100 transition-all focus:border-terracotta focus:ring-4"
+								className="w-full rounded-lg border-stone-200 bg-white py-1.5 pl-9 pr-4 text-xs ring-stone-100 transition-all focus:border-stone-400 focus:ring-4"
 							/>
 						</div>
 					</div>
 
 					{/* Channels List */}
-					<div className="custom-scrollbar max-h-[380px] overflow-y-auto bg-white p-2">
+					<div className="custom-scrollbar max-h-[340px] overflow-y-auto bg-white p-1.5">
 						<div className="grid gap-1">
 							{filteredChannels.map(([slug, channel]) => (
-								<div key={slug} className="rounded-xl p-1 transition-colors hover:bg-stone-50">
-									<div className="mb-1 flex items-center gap-2 px-2 py-1">
-										<span className="text-xs">{channel.flag}</span>
-										<span className="font-serif text-[11px] font-bold uppercase tracking-wider text-stone-500">
+								<div key={slug} className="rounded-xl p-1 transition-colors hover:bg-stone-50/50">
+									<div className="mb-1 flex items-center gap-2 px-2 py-0.5">
+										<span className="text-[10px] leading-none">{channel.flag}</span>
+										<span className="font-serif text-[10px] font-bold uppercase tracking-widest text-stone-400">
 											{channel.name}
 										</span>
 									</div>
-									<div className="grid grid-cols-2 gap-1 px-1">
+									<div className="grid grid-cols-2 gap-1 px-0.5">
 										{channel.locales.map((loc) => {
 											const isSelected = currentChannel === slug && currentLocale === loc.code;
 											return (
@@ -272,16 +271,14 @@ export const CountryLanguageSelector = () => {
 													key={`${slug}-${loc.code}`}
 													onClick={() => handleSelection(slug, loc.code)}
 													className={cn(
-														"group flex items-center justify-between rounded-lg px-2.5 py-2 text-left text-[13px] transition-all",
+														"group flex items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-xs transition-all",
 														isSelected
 															? "bg-stone-900 text-white shadow-lg shadow-stone-200"
-															: "text-stone-700 hover:bg-stone-200/50 hover:text-stone-900",
+															: "text-stone-600 hover:bg-stone-100/80 hover:text-stone-900",
 													)}
 												>
 													<span className="font-medium">{loc.name}</span>
-													{isSelected && (
-														<Check className="animate-in fade-in zoom-in size-3.5 duration-300" />
-													)}
+													{isSelected && <Check className="size-3" />}
 												</button>
 											);
 										})}
@@ -291,43 +288,33 @@ export const CountryLanguageSelector = () => {
 						</div>
 
 						{filteredChannels.length === 0 && (
-							<div className="flex flex-col items-center justify-center py-12 text-center">
-								<div className="mb-2 rounded-full bg-stone-50 p-3">
-									<Search className="size-6 text-stone-300" />
-								</div>
-								<p className="text-sm font-medium text-stone-400">
-									No regions found for &quot;{searchQuery}&quot;
+							<div className="flex flex-col items-center justify-center py-8 text-center">
+								<p className="text-[11px] font-medium text-stone-400">
+									No regions for &quot;{searchQuery}&quot;
 								</p>
 							</div>
 						)}
 					</div>
 
 					{/* Subtle Footer */}
-					<div className="border-t border-stone-100 bg-stone-50/80 p-3.5">
-						<div className="flex items-center justify-center gap-1.5 opacity-60">
-							<span className="size-1 rounded-full bg-stone-300" />
-							<p className="text-[10px] font-medium uppercase tracking-wider text-stone-500">
-								Regional pricing & content active
-							</p>
-							<span className="size-1 rounded-full bg-stone-300" />
-						</div>
+					<div className="border-t border-stone-100 bg-stone-50/50 p-2.5 text-center">
+						<p className="text-[9px] font-bold uppercase tracking-widest text-stone-300">
+							Regional pricing active
+						</p>
 					</div>
 				</div>
 			)}
 
 			<style jsx global>{`
 				.custom-scrollbar::-webkit-scrollbar {
-					width: 5px;
+					width: 4px;
 				}
 				.custom-scrollbar::-webkit-scrollbar-track {
 					background: transparent;
 				}
 				.custom-scrollbar::-webkit-scrollbar-thumb {
-					background: #e7e5e4; /* stone-200 */
+					background: #e7e5e4;
 					border-radius: 10px;
-				}
-				.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-					background: #d6d3d1; /* stone-300 */
 				}
 			`}</style>
 		</div>
