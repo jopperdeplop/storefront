@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import Link from "next/link";
+import { LinkWithChannel } from "@/ui/atoms/LinkWithChannel";
 import { ChevronDown, ChevronRight, Menu } from "lucide-react";
 
 interface MenuItem {
@@ -55,14 +55,14 @@ function DropdownItem({ item, onClose }: { item: MenuItem; onClose: () => void }
 			onMouseEnter={() => setIsHovered(true)}
 			onMouseLeave={() => setIsHovered(false)}
 		>
-			<Link
+			<LinkWithChannel
 				href={href}
 				onClick={onClose}
 				className="flex items-center justify-between rounded-lg px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-stone-50 hover:text-terracotta"
 			>
 				<span>{label}</span>
 				{hasChildren && <ChevronRight size={14} className="text-gray-400" />}
-			</Link>
+			</LinkWithChannel>
 
 			{/* Flyout Menu (Right) */}
 			{hasChildren && isHovered && (
@@ -110,13 +110,13 @@ export function DropdownMenu({ items }: { items: MenuItem[] }) {
 			{isOpen && (
 				<div className="animate-in fade-in zoom-in-95 absolute left-0 top-full z-50 mt-2 w-64 rounded-xl border border-stone-100 bg-white p-2 shadow-xl duration-200">
 					<div className="flex flex-col gap-1">
-						<Link
+						<LinkWithChannel
 							href="/products"
 							onClick={() => setIsOpen(false)}
 							className="block rounded-lg px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-stone-50 hover:text-terracotta"
 						>
 							All Products
-						</Link>
+						</LinkWithChannel>
 						<div className="my-1 h-px bg-stone-100" />
 
 						{items.map((item) => (

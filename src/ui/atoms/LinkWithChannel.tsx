@@ -20,7 +20,7 @@ export const LinkWithChannel = ({
 
 	// 1. Priority: Override Prop > URL Param > Default Fallback
 	// This ensures that if you are on /eur/nl, it persists 'nl'.
-	const channel = channelProp || (typeof params?.channel === "string" ? params.channel : "eur");
+	const channel = channelProp || (typeof params?.channel === "string" ? params.channel : "netherlands");
 	const locale = localeProp || (typeof params?.locale === "string" ? params.locale : "en");
 
 	// 2. External Links: Don't modify them

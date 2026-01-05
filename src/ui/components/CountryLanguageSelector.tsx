@@ -191,20 +191,18 @@ export const CountryLanguageSelector = () => {
 				setIsOpen(false);
 			}
 		};
-		document.addEventListener("mousedown", handleClickOutside);
+		if (isOpen) {
+			document.addEventListener("mousedown", handleClickOutside);
+		}
 		return () => document.removeEventListener("mousedown", handleClickOutside);
-	}, []);
+	}, [isOpen]);
 
 	const handleSelection = (channel: string, locale: string) => {
-		// Set cookie for persistence (30 days)
 		document.cookie = `NEXT_LOCALE=${locale}; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`;
-
-		// Construct new path
 		const segments = pathname.split("/").filter(Boolean);
 		const rest = segments.slice(2).join("/");
-
 		setIsOpen(false);
-		router.push(`/${channel}/${locale}/${rest}`);
+		router.push(`/${channel}/${locale}/${rest ? "/" + rest : ""}`);
 	};
 
 	const filteredChannels = Object.entries(CHANNEL_CONFIG).filter(([, value]) =>
@@ -212,40 +210,59 @@ export const CountryLanguageSelector = () => {
 	);
 
 	return (
-		<div className="relative" ref={dropdownRef}>
-			{/* Trigger Button */}
+		<div className="relative inline-block text-left" ref={dropdownRef}>
+			{/* Trigger Button: Premium & Compact */}
 			<button
 				onClick={() => setIsOpen(!isOpen)}
-				className="flex items-center gap-2 rounded-full border border-neutral-200 bg-white/80 px-3 py-1.5 text-sm font-medium transition-all hover:bg-neutral-50 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-black/5 disabled:opacity-50 dark:border-neutral-800 dark:bg-neutral-900/80 dark:hover:bg-neutral-800"
+				className={cn(
+					"flex items-center gap-2 rounded-lg border border-stone-200 bg-white/95 px-3 py-1.5 text-xs font-semibold tracking-tight transition-all hover:border-stone-300 hover:bg-stone-50 active:scale-95 sm:text-sm",
+					isOpen && "border-stone-400 bg-stone-50 ring-2 ring-stone-100",
+				)}
 			>
-				<span className="text-base">{config.flag}</span>
-				<span className="hidden md:inline">{config.name}</span>
-				<span className="text-neutral-400">/</span>
-				<span>{currentLocale.toUpperCase()}</span>
-				<ChevronDown className={cn("size-4 text-neutral-400 transition-transform", isOpen && "rotate-180")} />
+				<span className="text-base leading-none">{config.flag}</span>
+				<span className="hidden leading-none text-stone-900 sm:inline">{config.name}</span>
+				<span className="mx-0.5 text-stone-300">/</span>
+				<span className="leading-none text-stone-600">{currentLocale.toUpperCase()}</span>
+				<ChevronDown
+					className={cn(
+						"size-3.5 text-stone-400 transition-transform duration-300",
+						isOpen && "rotate-180 text-stone-600",
+					)}
+				/>
 			</button>
 
-			{/* Dropdown Panel */}
+			{/* Dropdown Panel: Glassmorphism & Editorial Styling */}
 			{isOpen && (
-				<div className="animate-in fade-in zoom-in-95 absolute right-0 top-full z-[100] mt-2 w-[320px] origin-top-right overflow-hidden rounded-2xl border border-neutral-200 bg-white/90 shadow-2xl backdrop-blur-xl duration-200 dark:border-neutral-800 dark:bg-neutral-900/90">
-					<div className="p-4">
-						<div className="relative mb-4">
-							<Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-neutral-400" />
+				<div
+					className={cn(
+						"animate-in fade-in zoom-in-95 bg-white/98 -right-20 top-full z-[100] mt-3 w-[300px] origin-top-right overflow-hidden rounded-2xl border border-stone-200 shadow-[0_20px_50px_rgba(0,0,0,0.1)] backdrop-blur-xl duration-200 sm:right-0 sm:w-[340px]",
+					)}
+				>
+					{/* Search Header */}
+					<div className="border-b border-stone-100 bg-stone-50/50 p-4">
+						<div className="group relative">
+							<Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-stone-400 transition-colors group-focus-within:text-terracotta" />
 							<input
 								type="text"
-								placeholder="Search country..."
+								placeholder="Search region..."
+								autoFocus
 								value={searchQuery}
 								onChange={(e) => setSearchQuery(e.target.value)}
-								className="w-full rounded-xl border-none bg-neutral-100 py-2 pl-9 pr-4 text-sm focus:ring-2 focus:ring-black/5 dark:bg-neutral-800"
+								className="w-full rounded-xl border-stone-200 bg-white py-2 pl-9 pr-4 text-sm ring-stone-100 transition-all focus:border-terracotta focus:ring-4"
 							/>
 						</div>
+					</div>
 
-						<div className="custom-scrollbar max-h-[300px] overflow-y-auto pr-1">
+					{/* Channels List */}
+					<div className="custom-scrollbar max-h-[380px] overflow-y-auto bg-white p-2">
+						<div className="grid gap-1">
 							{filteredChannels.map(([slug, channel]) => (
-								<div key={slug} className="mb-4 last:mb-0">
-									<div className="mb-1 flex items-center gap-2 px-2 text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-										<span>{channel.flag}</span>
-										<span>{channel.name}</span>
+								<div key={slug} className="rounded-xl p-1 transition-colors hover:bg-stone-50">
+									<div className="mb-1 flex items-center gap-2 px-2 py-1">
+										<span className="text-xs">{channel.flag}</span>
+										<span className="font-serif text-[11px] font-bold uppercase tracking-wider text-stone-500">
+											{channel.name}
+										</span>
 									</div>
 									<div className="grid grid-cols-2 gap-1 px-1">
 										{channel.locales.map((loc) => {
@@ -255,47 +272,62 @@ export const CountryLanguageSelector = () => {
 													key={`${slug}-${loc.code}`}
 													onClick={() => handleSelection(slug, loc.code)}
 													className={cn(
-														"flex items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800",
-														isSelected &&
-															"bg-black text-white hover:bg-black dark:bg-white dark:text-black dark:hover:bg-white",
+														"group flex items-center justify-between rounded-lg px-2.5 py-2 text-left text-[13px] transition-all",
+														isSelected
+															? "bg-stone-900 text-white shadow-lg shadow-stone-200"
+															: "text-stone-700 hover:bg-stone-200/50 hover:text-stone-900",
 													)}
 												>
-													<span>{loc.name}</span>
-													{isSelected && <Check className="size-3" />}
+													<span className="font-medium">{loc.name}</span>
+													{isSelected && (
+														<Check className="animate-in fade-in zoom-in size-3.5 duration-300" />
+													)}
 												</button>
 											);
 										})}
 									</div>
 								</div>
 							))}
-							{filteredChannels.length === 0 && (
-								<div className="py-8 text-center text-sm text-neutral-400">
-									No countries found for &quot;{searchQuery}&quot;
-								</div>
-							)}
 						</div>
+
+						{filteredChannels.length === 0 && (
+							<div className="flex flex-col items-center justify-center py-12 text-center">
+								<div className="mb-2 rounded-full bg-stone-50 p-3">
+									<Search className="size-6 text-stone-300" />
+								</div>
+								<p className="text-sm font-medium text-stone-400">
+									No regions found for &quot;{searchQuery}&quot;
+								</p>
+							</div>
+						)}
 					</div>
 
-					{/* Footer / Helper */}
-					<div className="border-t border-neutral-100 bg-neutral-50/50 p-3 text-center text-[10px] text-neutral-500 dark:border-neutral-800 dark:bg-neutral-800/50">
-						Prices and availability are shown based on your region.
+					{/* Subtle Footer */}
+					<div className="border-t border-stone-100 bg-stone-50/80 p-3.5">
+						<div className="flex items-center justify-center gap-1.5 opacity-60">
+							<span className="size-1 rounded-full bg-stone-300" />
+							<p className="text-[10px] font-medium uppercase tracking-wider text-stone-500">
+								Regional pricing & content active
+							</p>
+							<span className="size-1 rounded-full bg-stone-300" />
+						</div>
 					</div>
 				</div>
 			)}
 
 			<style jsx global>{`
 				.custom-scrollbar::-webkit-scrollbar {
-					width: 4px;
+					width: 5px;
 				}
 				.custom-scrollbar::-webkit-scrollbar-track {
 					background: transparent;
 				}
 				.custom-scrollbar::-webkit-scrollbar-thumb {
-					background: #e5e5e5;
+					background: #e7e5e4; /* stone-200 */
 					border-radius: 10px;
 				}
-				.dark .custom-scrollbar::-webkit-scrollbar-thumb {
-					background: #404040;
+				.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+					background: #d6d3d1; /* stone-300 */
 				}
 			`}</style>
 		</div>

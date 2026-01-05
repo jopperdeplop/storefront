@@ -1,7 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
 import { LinkWithChannel } from "../atoms/LinkWithChannel";
-import { ChannelSelect } from "./ChannelSelect";
 import { ChannelsListDocument, MenuGetBySlugDocument, type LanguageCodeEnum } from "@/gql/graphql";
 import { executeGraphQL } from "@/lib/graphql";
 
@@ -123,15 +122,8 @@ export async function Footer({ channel, locale }: { channel: string; locale: str
 						<p className="font-mono text-xs text-gray-600">&copy; {currentYear} • Quality as a Service.</p>
 					</div>
 
-					{/* Currency & Credits */}
+					{/* Credits */}
 					<div className="flex flex-col gap-4 md:items-end">
-						{channels?.channels && (
-							<div className="text-sm">
-								<span className="mr-2 font-mono text-xs uppercase text-gray-500">Region:</span>
-								<ChannelSelect channels={channels.channels} />
-							</div>
-						)}
-
 						<p className="flex items-center gap-2 font-mono text-xs uppercase text-gray-500">
 							<span>Powered by</span>
 							<Link
