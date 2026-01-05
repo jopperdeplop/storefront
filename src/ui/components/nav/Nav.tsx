@@ -46,9 +46,9 @@ export const Nav = ({ channel, locale }: { channel: string; locale: string }) =>
 			{/* Mobile Menu Trigger */}
 			<Suspense>
 				<MobileMenu>
-					{/* Mobile Region Switcher */}
-					<div className="mb-4 border-b border-stone-100 pb-4 lg:hidden">
-						<CountryLanguageSelector />
+					{/* Mobile Region Switcher - Inline Best Practice */}
+					<div className="mb-6 lg:hidden">
+						<CountryLanguageSelector isMobile={true} />
 					</div>
 					<SearchBar />
 					{/* UPDATED: Use MobileNavLinks here to get the dropdowns/plus icons */}
