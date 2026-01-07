@@ -36,7 +36,7 @@ interface BrandNode {
 	id: string;
 	title: string;
 	slug: string;
-	logo?: { value?: { url?: string } } | null;
+	logo?: { value?: { url?: string } };
 }
 
 interface ProductNode {
@@ -68,7 +68,7 @@ async function getPayloadHomepage(locale: string): Promise<PayloadHomepage | nul
 			next: { revalidate: 60 },
 		});
 		if (!res.ok) return null;
-		const data = await res.json();
+		const data = (await res.json()) as any;
 		return data.docs?.[0] || data;
 	} catch (e) {
 		console.error("Failed to fetch from Payload:", e);
