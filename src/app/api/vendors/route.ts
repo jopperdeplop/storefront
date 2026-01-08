@@ -28,11 +28,8 @@ export async function GET() {
 				"x-internal-secret": secret,
 				"Content-Type": "application/json",
 			},
-			// Reduce revalidation for faster updates during testing
-			next: {
-				revalidate: 60,
-				tags: ["vendors-map"],
-			},
+			// Disable caching to bust stale empty response
+			cache: "no-store",
 		});
 
 		console.log("[Proxy] Response status:", response.status, response.statusText);
@@ -52,7 +49,7 @@ export async function GET() {
 
 		return NextResponse.json(data, {
 			headers: {
-				"Cache-Control": "public, s-maxage=60, stale-while-revalidate=120",
+				"Cache-Control": "no-cache, no-store, must-revalidate",
 			},
 		});
 	} catch (error) {
