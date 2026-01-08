@@ -187,14 +187,16 @@ export default function MapWrapper() {
 		}
 
 		// Add Navigation Controls
-		map.current.addControl(
-			new maplibregl.NavigationControl({
-				showCompass: true,
-				showZoom: true,
-				visualizePitch: true,
-			}),
-			"bottom-right",
-		);
+		if (map.current) {
+			map.current.addControl(
+				new maplibregl.NavigationControl({
+					showCompass: true,
+					showZoom: true,
+					visualizePitch: true,
+				}),
+				"bottom-right",
+			);
+		}
 
 		return () => {
 			map.current?.remove();
@@ -268,7 +270,7 @@ export default function MapWrapper() {
 			<div ref={mapContainer} className="absolute inset-0 z-0" />
 
 			{/* Loading State Overlay */}
-			{loading && (
+			{(loading || !mapLoaded) && (
 				<div className="absolute inset-0 z-20 flex items-center justify-center bg-stone-900/40 backdrop-blur-xl">
 					<div className="flex flex-col items-center gap-6">
 						<div className="relative">
