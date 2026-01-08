@@ -150,32 +150,40 @@ export default function MapWrapper() {
 		}
 
 		// Initialize MapLibre GL
-		map.current = new maplibregl.Map({
-			container: mapContainer.current,
-			style: styleUrl || `https://api.maptiler.com/maps/outdoor-v2/style.json?key=${apiKey}`,
-			center: [15.2551, 54.526], // Centered on Europe
-			zoom: 3.8,
-			pitch: 45,
-			bearing: 0,
-			cooperativeGestures: true, // Prevents scroll trapping on mobile
-		});
-
-		map.current.on("load", () => {
-			if (!map.current) return;
-
-			// Add 3D Terrain Source
-			map.current.addSource("terrain", {
-				type: "raster-dem",
-				url: `https://api.maptiler.com/tiles/terrain-rgb-v2/tiles.json?key=${apiKey}`,
-				tileSize: 512,
+		try {
+			console.log("[MapWrapper] Initializing MapLibre...");
+			map.current = new maplibregl.Map({
+				container: mapContainer.current,
+				style: styleUrl || `https://api.maptiler.com/maps/outdoor-v2/style.json?key=${apiKey}`,
+				center: [15.2551, 54.526], // Centered on Europe
+				zoom: 3.8,
+				pitch: 45,
+				bearing: 0,
+				cooperativeGestures: true, // Prevents scroll trapping on mobile
 			});
 
-			// Enable Terrain with slight exaggeration for a cinematic feel
-			map.current.setTerrain({ source: "terrain", exaggeration: 1.4 });
+			map.current.on("load", () => {
+				if (!map.current) return;
+				console.log("[MapWrapper] Map style loaded successfully.");
 
-			// Enable Terrain with slight exaggeration for a cinematic feel
-			map.current!.setTerrain({ source: "terrain", exaggeration: 1.4 });
-		});
+				// Add 3D Terrain Source
+				map.current.addSource("terrain", {
+					type: "raster-dem",
+					url: `https://api.maptiler.com/tiles/terrain-rgb-v2/tiles.json?key=${apiKey}`,
+					tileSize: 512,
+				});
+
+				// Enable Terrain with slight exaggeration for a cinematic feel
+				map.current.setTerrain({ source: "terrain", exaggeration: 1.4 });
+				setMapLoaded(true);
+			});
+
+			map.current.on("error", (e) => {
+				console.error("[MapWrapper] MapLibre Error:", e.error?.message || e);
+			});
+		} catch (err) {
+			console.error("[MapWrapper] FAILED TO INITIALIZE MAP:", err);
+		}
 
 		// Add Navigation Controls
 		map.current.addControl(
