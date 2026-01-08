@@ -34,7 +34,7 @@ export default function MapWrapper() {
 				const res = await fetch("/api/vendors");
 				const data = await res.json();
 				if (Array.isArray(data)) {
-					setVendors(data);
+					setVendors(data as Vendor[]);
 				}
 			} catch (err) {
 				console.error("Failed to load vendor markers:", err);
@@ -145,7 +145,6 @@ export default function MapWrapper() {
 			zoom: 3.8,
 			pitch: 45,
 			bearing: 0,
-			antialias: true,
 			cooperativeGestures: true, // Prevents scroll trapping on mobile
 		});
 
@@ -165,13 +164,13 @@ export default function MapWrapper() {
 			// Add Sky/Atmosphere
 			map.current.addLayer({
 				id: "sky",
-				type: "sky" as any,
+				type: "sky",
 				paint: {
 					"sky-type": "atmosphere",
 					"sky-atmosphere-sun": [0.0, 90.0],
 					"sky-atmosphere-sun-intensity": 15,
 				},
-			});
+			} as any);
 		});
 
 		// Add Navigation Controls
