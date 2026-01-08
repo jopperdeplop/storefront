@@ -145,17 +145,26 @@ export default function MapWrapper() {
 		const apiKey = process.env.NEXT_PUBLIC_MAPTILER_API_KEY;
 		const styleUrl = process.env.NEXT_PUBLIC_MAPTILER_STYLE;
 
+		console.log("[MapWrapper] API Key present:", !!apiKey, "Key prefix:", apiKey?.slice(0, 8));
+		console.log(
+			"[MapWrapper] Style URL:",
+			styleUrl || `https://api.maptiler.com/maps/outdoor-v2/style.json?key=${apiKey?.slice(0, 8)}...`,
+		);
+
 		if (!apiKey && !styleUrl) {
-			console.error("MapTiler API Key or Style URL is missing. Map will not load.");
+			console.error("[MapWrapper] MapTiler API Key or Style URL is missing. Map will not load.");
 			return;
 		}
 
 		// Initialize MapLibre GL
 		try {
 			console.log("[MapWrapper] Initializing MapLibre...");
+			const fullStyleUrl = styleUrl || `https://api.maptiler.com/maps/outdoor-v2/style.json?key=${apiKey}`;
+			console.log("[MapWrapper] Using style:", fullStyleUrl.replace(apiKey || "", "[REDACTED]"));
+
 			map.current = new maplibregl.Map({
 				container: mapContainer.current,
-				style: styleUrl || `https://api.maptiler.com/maps/outdoor-v2/style.json?key=${apiKey}`,
+				style: fullStyleUrl,
 				center: [15.2551, 54.526], // Centered on Europe
 				zoom: 3.8,
 				pitch: 45,
