@@ -274,9 +274,9 @@ export default function MapWrapper() {
 	}, [vendors, locale, channel]);
 
 	return (
-		<div className="group relative h-[75vh] min-h-[500px] w-full overflow-hidden rounded-[2.5rem] border border-white/10 bg-blue-900 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)]">
-			{/* The Map Container */}
-			<div ref={mapContainer} className="absolute inset-0 z-0" style={{ background: "transparent" }} />
+		<div className="group relative h-[75vh] min-h-[500px] w-full overflow-hidden rounded-[2.5rem] border border-white/10 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)]">
+			{/* The Map Container - needs explicit dimensions for MapLibre canvas */}
+			<div ref={mapContainer} className="size-full" />
 
 			{/* Loading State Overlay - only show when actually loading */}
 			{loading && !mapLoaded && (
