@@ -137,6 +137,11 @@ export default function MapWrapper() {
 		const apiKey = process.env.NEXT_PUBLIC_MAPTILER_API_KEY;
 		const styleUrl = process.env.NEXT_PUBLIC_MAPTILER_STYLE;
 
+		if (!apiKey && !styleUrl) {
+			console.error("MapTiler API Key or Style URL is missing. Map will not load.");
+			return;
+		}
+
 		// Initialize MapLibre GL
 		map.current = new maplibregl.Map({
 			container: mapContainer.current,

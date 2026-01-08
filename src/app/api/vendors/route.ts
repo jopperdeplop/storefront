@@ -23,9 +23,9 @@ export async function GET() {
 				"x-internal-secret": secret,
 				"Content-Type": "application/json",
 			},
-			// Edge caching strategy: 1 hour revalidation
+			// Reduce revalidation for faster updates during testing
 			next: {
-				revalidate: 3600,
+				revalidate: 60,
 				tags: ["vendors-map"],
 			},
 		});
@@ -39,7 +39,7 @@ export async function GET() {
 
 		return NextResponse.json(data, {
 			headers: {
-				"Cache-Control": "public, s-maxage=3600, stale-while-revalidate=7200",
+				"Cache-Control": "public, s-maxage=60, stale-while-revalidate=120",
 			},
 		});
 	} catch (error) {
