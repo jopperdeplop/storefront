@@ -1,24 +1,10 @@
-import dynamic from "next/dynamic";
+import { MapClient } from "@/ui/components/Map/MapClient";
 import { type Metadata } from "next";
 
 export const metadata: Metadata = {
 	title: "Vendors Map | Salp Artisan Market",
 	description: "Explore our network of verified European artisans and boutiques on our interactive 3D map.",
 };
-
-/**
- * Dynamically import the MapWrapper with SSR disabled.
- * This is required because maplibre-gl relies heavily on browser APIs (window, navigator, canvas).
- */
-const MapWrapper = dynamic(() => import("@/ui/components/Map/MapWrapper"), {
-	ssr: false,
-	loading: () => (
-		<div className="flex h-[75vh] min-h-[500px] w-full flex-col items-center justify-center rounded-[2.5rem] border-2 border-dashed border-stone-200 bg-stone-100">
-			<div className="mb-4 size-10 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent" />
-			<div className="font-bold tracking-tight text-stone-400">Initializing 3D Map Engine...</div>
-		</div>
-	),
-});
 
 export default function VendorsMapPage() {
 	return (
@@ -44,7 +30,7 @@ export default function VendorsMapPage() {
 
 				{/* Map Section */}
 				<div className="mx-auto max-w-7xl">
-					<MapWrapper />
+					<MapClient />
 				</div>
 
 				{/* Features / Legend Section */}
