@@ -29,20 +29,12 @@ export default function MapWrapper() {
 	const [mapLoaded, setMapLoaded] = useState(false);
 
 	useEffect(() => {
-		// Fetch vendors from the local proxy API
 		const fetchVendors = async () => {
 			try {
 				const res = await fetch("/api/vendors");
 				const data = await res.json();
-				console.log("[MapWrapper] Fetch result:", {
-					ok: res.ok,
-					status: res.status,
-					count: Array.isArray(data) ? data.length : "not an array",
-				});
 				if (res.ok && Array.isArray(data)) {
 					setVendors(data as Vendor[]);
-				} else {
-					console.error("Map Data Error:", (data as any).error || "Unknown error", "Status:", res.status);
 				}
 			} catch (err) {
 				console.error("Failed to load vendor markers:", err);
@@ -145,36 +137,25 @@ export default function MapWrapper() {
 		const apiKey = process.env.NEXT_PUBLIC_MAPTILER_API_KEY;
 		const styleUrl = process.env.NEXT_PUBLIC_MAPTILER_STYLE;
 
-		console.log("[MapWrapper] API Key present:", !!apiKey, "Key prefix:", apiKey?.slice(0, 8));
-		console.log(
-			"[MapWrapper] Style URL:",
-			styleUrl || `https://api.maptiler.com/maps/outdoor-v2/style.json?key=${apiKey?.slice(0, 8)}...`,
-		);
-
 		if (!apiKey && !styleUrl) {
-			console.error("[MapWrapper] MapTiler API Key or Style URL is missing. Map will not load.");
+			console.error("MapTiler API Key or Style URL is missing.");
 			return;
 		}
 
-		// Initialize MapLibre GL
 		try {
-			console.log("[MapWrapper] Initializing MapLibre...");
 			const fullStyleUrl = styleUrl || `https://api.maptiler.com/maps/outdoor-v2/style.json?key=${apiKey}`;
-			console.log("[MapWrapper] Using style:", fullStyleUrl.replace(apiKey || "", "[REDACTED]"));
 
 			map.current = new maplibregl.Map({
 				container: mapContainer.current,
 				style: fullStyleUrl,
-				center: [15.2551, 54.526], // Centered on Europe
+				center: [15.2551, 54.526],
 				zoom: 3.8,
 				pitch: 45,
 				bearing: 0,
-				cooperativeGestures: true, // Prevents scroll trapping on mobile
 			});
 
 			map.current.on("load", () => {
 				if (!map.current) return;
-				console.log("[MapWrapper] Map style loaded successfully.");
 
 				// Add 3D Terrain Source
 				map.current.addSource("terrain", {
@@ -274,11 +255,11 @@ export default function MapWrapper() {
 	}, [vendors, locale, channel]);
 
 	return (
-		<div className="group relative h-[75vh] min-h-[500px] w-full overflow-hidden rounded-[2.5rem] border border-white/10 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)]">
-			{/* The Map Container - needs explicit dimensions for MapLibre canvas */}
+		<div className="group relative size-full overflow-hidden">
+			{/* The Map Container */}
 			<div ref={mapContainer} className="size-full" />
 
-			{/* Loading State Overlay - only show when actually loading */}
+			{/* Loading State Overlay */}
 			{loading && !mapLoaded && (
 				<div className="absolute inset-0 z-20 flex items-center justify-center bg-stone-900/80">
 					<div className="flex flex-col items-center gap-6">
@@ -297,29 +278,29 @@ export default function MapWrapper() {
 			)}
 
 			{/* UI Overlay: Info Panel */}
-			<div className="pointer-events-none absolute left-8 top-8 z-10 max-w-[280px]">
-				<div className="pointer-events-auto rounded-3xl border border-white bg-white/90 p-6 shadow-[0_20px_40px_rgba(0,0,0,0.15)] backdrop-blur-2xl transition-all hover:scale-[1.02]">
+			<div className="pointer-events-none absolute left-4 top-4 z-10 max-w-[280px] md:left-8 md:top-8">
+				<div className="pointer-events-auto rounded-3xl border border-white bg-white/90 p-5 shadow-[0_20px_40px_rgba(0,0,0,0.15)] backdrop-blur-2xl transition-all hover:scale-[1.02] md:p-6">
 					<div className="mb-4 flex items-center gap-3">
 						<div className="flex size-10 items-center justify-center rounded-2xl bg-indigo-600 shadow-lg shadow-indigo-200">
 							<Globe className="size-5 text-white" />
 						</div>
 						<div>
-							<h2 className="text-xl font-black leading-tight tracking-tight text-indigo-950">Artisan Hub</h2>
+							<h2 className="text-xl font-black leading-tight tracking-tight text-indigo-950">Brand Hub</h2>
 							<p className="text-[10px] font-black uppercase tracking-widest text-indigo-500">
-								Live Inventory Map
+								Live Partner Map
 							</p>
 						</div>
 					</div>
 					<div className="mb-4 h-px bg-gradient-to-r from-indigo-100 to-transparent" />
 					<p className="text-xs font-medium leading-relaxed text-indigo-900/60">
-						Explore our network of verified European vendors. Our map uses{" "}
+						Explore our network of verified European partners. Our map uses{" "}
 						<span className="font-bold text-indigo-600">GPU-accelerated 3D terrain</span> to visualize the
 						origin of your products.
 					</p>
 					<div className="mt-4 flex items-center gap-2">
 						<span className="flex size-2 animate-pulse rounded-full bg-green-500" />
 						<span className="text-[11px] font-bold text-indigo-900/40">
-							{vendors.length} Shops Registered
+							{vendors.length} Partners Registered
 						</span>
 					</div>
 				</div>
