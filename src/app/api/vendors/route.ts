@@ -36,6 +36,7 @@ export async function GET() {
 		}
 
 		const data = await response.json();
+		console.log(`[Proxy] Fetched ${Array.isArray(data) ? data.length : "invalid"} vendors.`);
 
 		return NextResponse.json(data, {
 			headers: {
