@@ -23,6 +23,16 @@ export const Nav = ({ channel, locale }: { channel: string; locale: string }) =>
 				<SearchBar />
 			</div>
 
+			{/* 2.5 Vendors Map Link (Desktop) */}
+			<div className="hidden whitespace-nowrap lg:block">
+				<a
+					href={`/${channel}/${locale}/vendors-map`}
+					className="text-sm font-bold uppercase tracking-widest text-stone-600 transition-colors hover:text-indigo-600"
+				>
+					Vendors Map
+				</a>
+			</div>
+
 			{/* 3. Right Side Actions (User, Cart) */}
 			<div className="ml-auto flex items-center gap-4 lg:gap-6">
 				{/* User Account */}
