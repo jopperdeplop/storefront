@@ -274,13 +274,13 @@ export default function MapWrapper() {
 	}, [vendors, locale, channel]);
 
 	return (
-		<div className="group relative h-[75vh] min-h-[500px] w-full overflow-hidden rounded-[2.5rem] border border-white/10 bg-stone-900 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)]">
+		<div className="group relative h-[75vh] min-h-[500px] w-full overflow-hidden rounded-[2.5rem] border border-white/10 bg-blue-900 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)]">
 			{/* The Map Container */}
-			<div ref={mapContainer} className="absolute inset-0 z-0" />
+			<div ref={mapContainer} className="absolute inset-0 z-0" style={{ background: "transparent" }} />
 
-			{/* Loading State Overlay */}
-			{(loading || !mapLoaded) && (
-				<div className="absolute inset-0 z-20 flex items-center justify-center bg-stone-900/40 backdrop-blur-xl">
+			{/* Loading State Overlay - only show when actually loading */}
+			{loading && !mapLoaded && (
+				<div className="absolute inset-0 z-20 flex items-center justify-center bg-stone-900/80">
 					<div className="flex flex-col items-center gap-6">
 						<div className="relative">
 							<div className="size-16 rounded-full border-[3px] border-indigo-500/20" />
