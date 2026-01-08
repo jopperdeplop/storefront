@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useParams } from "next/navigation";
+import { Globe } from "lucide-react";
 
 interface Vendor {
 	id: number;
@@ -17,11 +18,12 @@ interface Vendor {
 
 export default function MapWrapper() {
 	const params = useParams();
-	const locale = params?.locale || "en-GB";
-	const channel = params?.channel || "default-channel";
+	const locale = (params?.locale as string) || "en-GB";
+	const channel = (params?.channel as string) || "default-channel";
 
 	const mapContainer = useRef<HTMLDivElement>(null);
 	const map = useRef<maplibregl.Map | null>(null);
+	const markers = useRef<maplibregl.Marker[]>([]);
 	const [vendors, setVendors] = useState<Vendor[]>([]);
 	const [loading, setLoading] = useState(true);
 
@@ -41,6 +43,92 @@ export default function MapWrapper() {
 			}
 		};
 		fetchVendors();
+	}, []);
+
+	// Inject global styles since styled-jsx is not configured
+	useEffect(() => {
+		const style = document.createElement("style");
+		style.innerHTML = `
+			.marker-icon {
+				width: 38px;
+				height: 38px;
+				background: #4f46e5;
+				border: 3px solid white;
+				border-radius: 50% 50% 50% 0;
+				transform: rotate(-45deg);
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				color: white;
+				transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+			}
+			.marker-icon svg {
+				transform: rotate(45deg);
+			}
+			.marker-container:hover .marker-icon {
+				background: #3730a3;
+				transform: rotate(-45deg) scale(1.15) translateY(-5px);
+				box-shadow: 0 20px 25px -5px rgba(79, 70, 229, 0.4);
+			}
+			.custom-vendor-popup .maplibregl-popup-content {
+				background: white;
+				border-radius: 1.5rem;
+				padding: 0;
+				box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+				border: none;
+				overflow: hidden;
+			}
+			.custom-vendor-popup .maplibregl-popup-tip {
+				display: none;
+			}
+			.vendor-card {
+				padding: 1.5rem;
+				min-width: 220px;
+			}
+			.city-tag {
+				display: inline-block;
+				padding: 0.25rem 0.6rem;
+				background: #f5f3ff;
+				color: #4f46e5;
+				font-size: 10px;
+				font-weight: 900;
+				text-transform: uppercase;
+				letter-spacing: 0.1em;
+				border-radius: 2rem;
+				margin-bottom: 0.5rem;
+			}
+			.brand-name {
+				font-size: 1.25rem;
+				font-weight: 800;
+				color: #1e1b4b;
+				margin: 0 0 1.25rem 0;
+				letter-spacing: -0.02em;
+			}
+			.visit-btn {
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				gap: 0.5rem;
+				width: 100%;
+				padding: 0.75rem;
+				background: #4f46e5;
+				color: white;
+				border-radius: 1rem;
+				font-size: 0.875rem;
+				font-weight: 700;
+				text-decoration: none;
+				transition: all 0.2s;
+			}
+			.visit-btn:hover {
+				background: #4338ca;
+				transform: translateY(-2px);
+				box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);
+			}
+		`;
+		document.head.appendChild(style);
+		return () => {
+			document.head.removeChild(style);
+		};
 	}, []);
 
 	useEffect(() => {
@@ -106,6 +194,10 @@ export default function MapWrapper() {
 	useEffect(() => {
 		if (!map.current || vendors.length === 0) return;
 
+		// Clear existing markers
+		markers.current.forEach((m) => m.remove());
+		markers.current = [];
+
 		vendors.forEach((vendor) => {
 			// Create a custom HTML element for the marker to allow styling and animations
 			const el = document.createElement("div");
@@ -137,7 +229,7 @@ export default function MapWrapper() {
 											vendor.saleorPageSlug
 												? `
                         <div class="vendor-action">
-                            <a href="/${locale}/${channel}/pages/${vendor.saleorPageSlug}" class="visit-btn">
+                            <a href="/${channel}/${locale}/pages/${vendor.saleorPageSlug}" class="visit-btn">
                                 Visit Shop
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"></path></svg>
                             </a>
@@ -149,10 +241,12 @@ export default function MapWrapper() {
             `);
 
 			// Add the Marker to the map
-			new maplibregl.Marker({ element: el, anchor: "bottom" })
+			const m = new maplibregl.Marker({ element: el, anchor: "bottom" })
 				.setLngLat([vendor.longitude, vendor.latitude])
 				.setPopup(popup)
 				.addTo(map.current!);
+
+			markers.current.push(m);
 		});
 	}, [vendors, locale, channel]);
 
@@ -207,106 +301,6 @@ export default function MapWrapper() {
 					</div>
 				</div>
 			</div>
-
-			{/* Global Styles for Custom Markers and Popups */}
-			<style jsx global>{`
-				.marker-icon {
-					width: 38px;
-					height: 38px;
-					background: #4f46e5;
-					border: 3px solid white;
-					border-radius: 50% 50% 50% 0;
-					transform: rotate(-45deg);
-					display: flex;
-					align-items: center;
-					justify-content: center;
-					color: white;
-					transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-				}
-				.marker-icon svg {
-					transform: rotate(45deg);
-				}
-				.marker-container:hover .marker-icon {
-					background: #3730a3;
-					transform: rotate(-45deg) scale(1.15) translateY(-5px);
-					box-shadow: 0 20px 25px -5px rgba(79, 70, 229, 0.4);
-				}
-
-				.custom-vendor-popup .maplibregl-popup-content {
-					background: white;
-					border-radius: 1.5rem;
-					padding: 0;
-					box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-					border: none;
-					overflow: hidden;
-				}
-				.custom-vendor-popup .maplibregl-popup-tip {
-					display: none;
-				}
-
-				.vendor-card {
-					padding: 1.5rem;
-					min-width: 220px;
-				}
-				.city-tag {
-					display: inline-block;
-					padding: 0.25rem 0.6rem;
-					background: #f5f3ff;
-					color: #4f46e5;
-					font-size: 10px;
-					font-weight: 900;
-					text-transform: uppercase;
-					letter-spacing: 0.1em;
-					border-radius: 2rem;
-					margin-bottom: 0.5rem;
-				}
-				.brand-name {
-					font-size: 1.25rem;
-					font-weight: 800;
-					color: #1e1b4b;
-					margin: 0 0 1.25rem 0;
-					letter-spacing: -0.02em;
-				}
-				.visit-btn {
-					display: flex;
-					align-items: center;
-					justify-content: center;
-					gap: 0.5rem;
-					width: 100%;
-					padding: 0.75rem;
-					background: #4f46e5;
-					color: white;
-					border-radius: 1rem;
-					font-size: 0.875rem;
-					font-weight: 700;
-					text-decoration: none;
-					transition: all 0.2s;
-				}
-				.visit-btn:hover {
-					background: #4338ca;
-					transform: translateY(-2px);
-					box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);
-				}
-			`}</style>
 		</div>
-	);
-}
-
-// Minimal Globe icon since we can't easily import from lucide in the style tag scope or string templates
-function Globe(props: any) {
-	return (
-		<svg
-			{...props}
-			viewBox="0 0 24 24"
-			fill="none"
-			stroke="currentColor"
-			strokeWidth="2"
-			strokeLinecap="round"
-			strokeLinejoin="round"
-		>
-			<circle cx="12" cy="12" r="10" />
-			<line x1="2" y1="12" x2="22" y2="12" />
-			<path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-		</svg>
 	);
 }
