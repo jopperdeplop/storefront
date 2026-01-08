@@ -13,9 +13,14 @@ export async function GET() {
 
 	// Validate environment setup
 	if (!apiUrl || !secret) {
-		console.error("Critical environmental variables missing for vendor map integration.");
+		console.error("[Proxy] Critical environmental variables missing.", {
+			apiUrl: !!apiUrl,
+			secret: !!secret,
+		});
 		return NextResponse.json({ error: "Configuration error on server" }, { status: 500 });
 	}
+
+	console.log("[Proxy] Fetching from:", apiUrl);
 
 	try {
 		const response = await fetch(apiUrl, {
@@ -30,13 +35,22 @@ export async function GET() {
 			},
 		});
 
+		console.log("[Proxy] Response status:", response.status, response.statusText);
+
 		if (!response.ok) {
-			console.error(`SaleorPortal API error: ${response.status}`);
-			return NextResponse.json({ error: "Upstream data fetch failed" }, { status: response.status });
+			const errorBody = await response.text();
+			console.error(`[Proxy] SaleorPortal API error: ${response.status}`, errorBody);
+			return NextResponse.json(
+				{ error: "Upstream data fetch failed", details: errorBody },
+				{ status: response.status },
+			);
 		}
 
 		const data = await response.json();
-		console.log(`[Proxy] Fetched ${Array.isArray(data) ? data.length : "invalid"} vendors.`);
+		console.log(
+			`[Proxy] Received ${Array.isArray(data) ? data.length : "invalid"} vendors. Sample:`,
+			JSON.stringify(data.slice?.(0, 2)),
+		);
 
 		return NextResponse.json(data, {
 			headers: {
