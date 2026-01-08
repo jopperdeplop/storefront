@@ -26,6 +26,7 @@ export default function MapWrapper() {
 	const markers = useRef<maplibregl.Marker[]>([]);
 	const [vendors, setVendors] = useState<Vendor[]>([]);
 	const [loading, setLoading] = useState(true);
+	const [mapLoaded, setMapLoaded] = useState(false);
 
 	useEffect(() => {
 		// Fetch vendors from the local proxy API
