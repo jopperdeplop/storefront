@@ -33,6 +33,11 @@ export default function MapWrapper() {
 			try {
 				const res = await fetch("/api/vendors");
 				const data = await res.json();
+				console.log("[MapWrapper] Fetch result:", {
+					ok: res.ok,
+					status: res.status,
+					count: Array.isArray(data) ? data.length : "not an array",
+				});
 				if (res.ok && Array.isArray(data)) {
 					setVendors(data as Vendor[]);
 				} else {
@@ -168,16 +173,8 @@ export default function MapWrapper() {
 			// Enable Terrain with slight exaggeration for a cinematic feel
 			map.current.setTerrain({ source: "terrain", exaggeration: 1.4 });
 
-			// Add Sky/Atmosphere
-			map.current.addLayer({
-				id: "sky",
-				type: "sky",
-				paint: {
-					"sky-type": "atmosphere",
-					"sky-atmosphere-sun": [0.0, 90.0],
-					"sky-atmosphere-sun-intensity": 15,
-				},
-			} as any);
+			// Enable Terrain with slight exaggeration for a cinematic feel
+			map.current!.setTerrain({ source: "terrain", exaggeration: 1.4 });
 		});
 
 		// Add Navigation Controls
