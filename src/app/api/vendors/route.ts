@@ -47,10 +47,8 @@ export async function GET() {
 		}
 
 		const data = await response.json();
-		console.log(
-			`[Proxy] Received ${Array.isArray(data) ? data.length : "invalid"} vendors. Sample:`,
-			JSON.stringify(data.slice?.(0, 2)),
-		);
+		const vendors = Array.isArray(data) ? data : [];
+		console.log(`[Proxy] Received ${vendors.length} vendors. Sample:`, JSON.stringify(vendors.slice(0, 2)));
 
 		return NextResponse.json(data, {
 			headers: {
