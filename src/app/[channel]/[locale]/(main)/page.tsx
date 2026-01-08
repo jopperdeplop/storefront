@@ -5,6 +5,7 @@ import {
 	type LanguageCodeEnum,
 	type BrandPageTypeQuery,
 } from "@/gql/graphql";
+import { type Metadata } from "next";
 import { executeGraphQL } from "@/lib/graphql";
 import {
 	HeroSection,
@@ -13,6 +14,24 @@ import {
 	ProductGridSection,
 	CollectionCardsSection,
 } from "@/ui/components/payload";
+
+export async function generateMetadata(props: {
+	params: Promise<{ channel: string; locale: string }>;
+}): Promise<Metadata> {
+	const params = await props.params;
+	const payloadHomepage = await getPayloadHomepage(params.locale);
+
+	if (payloadHomepage?.seo) {
+		return {
+			title: payloadHomepage.seo.metaTitle || "Saleor Storefront",
+			description: payloadHomepage.seo.metaDescription,
+		};
+	}
+
+	return {
+		title: "Saleor Storefront",
+	};
+}
 
 // Types for Payload blocks
 interface PayloadBlock {
