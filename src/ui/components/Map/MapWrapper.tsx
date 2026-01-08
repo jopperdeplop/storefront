@@ -33,8 +33,10 @@ export default function MapWrapper() {
 			try {
 				const res = await fetch("/api/vendors");
 				const data = await res.json();
-				if (Array.isArray(data)) {
+				if (res.ok && Array.isArray(data)) {
 					setVendors(data as Vendor[]);
+				} else {
+					console.error("Map Data Error:", (data as any).error || "Unknown error", "Status:", res.status);
 				}
 			} catch (err) {
 				console.error("Failed to load vendor markers:", err);
