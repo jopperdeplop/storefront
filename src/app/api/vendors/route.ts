@@ -21,21 +21,20 @@ export async function GET() {
 				"x-internal-secret": secret,
 				"Content-Type": "application/json",
 			},
-			next: {
-				revalidate: 300, // Cache for 5 minutes
-				tags: ["vendors-map"],
-			},
+			cache: "no-store",
 		});
 
 		if (!response.ok) {
+			console.error("Vendor API error:", response.status, await response.text());
 			return NextResponse.json({ error: "Upstream fetch failed" }, { status: response.status });
 		}
 
 		const data = await response.json();
+		console.log("Vendor fetch success:", Array.isArray(data) ? data.length : "not array");
 
 		return NextResponse.json(data, {
 			headers: {
-				"Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
+				"Cache-Control": "no-cache, no-store, must-revalidate",
 			},
 		});
 	} catch (error) {
