@@ -4,8 +4,8 @@ export const runtime = "edge";
 
 /**
  * Edge API Proxy for vendor location data.
- * This proxy handles authentication with the SaleorPortal public API
- * and implements caching to ensure high performance for the 3D map.
+ * Authenticates with the SaleorPortal and passes through the cached response.
+ * Note: SaleorPortal handles caching (5 min), so we use no-store here to avoid stale data.
  */
 export async function GET() {
 	const apiUrl = process.env.NEXT_PUBLIC_MAP_API_URL;
@@ -21,10 +21,7 @@ export async function GET() {
 				"x-internal-secret": secret,
 				"Content-Type": "application/json",
 			},
-			next: {
-				revalidate: 300, // Cache for 5 minutes
-				tags: ["vendors-map"],
-			},
+			cache: "no-store", // SaleorPortal handles caching
 		});
 
 		if (!response.ok) {
@@ -33,11 +30,7 @@ export async function GET() {
 
 		const data = await response.json();
 
-		return NextResponse.json(data, {
-			headers: {
-				"Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
-			},
-		});
+		return NextResponse.json(data);
 	} catch (error) {
 		console.error("Vendor proxy error:", error);
 		return NextResponse.json({ error: "Service temporarily unavailable" }, { status: 503 });
