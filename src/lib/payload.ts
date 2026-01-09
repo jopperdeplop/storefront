@@ -36,7 +36,7 @@ export async function getBrandPageBySlug(slug: string, locale?: string): Promise
 	try {
 		const localeParam = locale ? `&locale=${locale}` : "";
 		const response = await fetch(
-			`${PAYLOAD_URL}/api/brand-pages?where[saleorPageSlug][equals]=${slug}&limit=1${localeParam}`,
+			`${PAYLOAD_URL}/api/brand-page?where[saleorPageSlug][equals]=${slug}&limit=1${localeParam}`,
 			{
 				next: { revalidate: 60 },
 			},
