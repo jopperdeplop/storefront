@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Map, Marker, NavigationControl, GeolocateControl, Popup } from "maplibre-gl";
+import { Map, Marker, NavigationControl, Popup } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useParams } from "next/navigation";
 import { Globe } from "lucide-react";
@@ -27,7 +27,6 @@ export default function MapWrapper() {
 	const [vendors, setVendors] = useState<Vendor[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [mapLoaded, setMapLoaded] = useState(false);
-	const [is3D, setIs3D] = useState(true);
 
 	useEffect(() => {
 		const fetchVendors = async () => {
@@ -160,7 +159,7 @@ export default function MapWrapper() {
 				pitch: 45,
 				maxPitch: 85,
 				bearing: 0,
-				dragRotate: true,
+				doubleClickZoom: false, // Disable default zoom to use for angle toggle
 			});
 
 			map.current.on("load", () => {
@@ -179,13 +178,19 @@ export default function MapWrapper() {
 			});
 
 			map.current.on("error", (e) => {
-				console.error("[MapWrapper] MapLibre Error:", e.error?.message || e);
+				console.error("[MapWrapper] MapLibre Error:", (e as any).error?.message || e);
 			});
 
-			map.current.on("pitch", () => {
+			// Toggle angle (pitch) on double press/click
+			map.current.on("dblclick", () => {
 				if (map.current) {
 					const currentPitch = map.current.getPitch();
-					setIs3D(currentPitch > 10);
+					const nextPitch = currentPitch > 10 ? 0 : 60;
+					map.current.easeTo({
+						pitch: nextPitch,
+						duration: 800,
+						essential: true,
+					});
 				}
 			});
 		} catch (err) {
@@ -199,13 +204,6 @@ export default function MapWrapper() {
 					showCompass: true,
 					showZoom: true,
 					visualizePitch: true,
-				}),
-				"bottom-right",
-			);
-			map.current.addControl(
-				new GeolocateControl({
-					positionOptions: { enableHighAccuracy: true },
-					trackUserLocation: true,
 				}),
 				"bottom-right",
 			);
@@ -277,29 +275,6 @@ export default function MapWrapper() {
 		});
 	}, [vendors, locale, channel]);
 
-	const toggle3D = () => {
-		if (!map.current) return;
-		const nextPitch = is3D ? 0 : 60;
-		map.current.easeTo({
-			pitch: nextPitch,
-			duration: 1000,
-			essential: true,
-		});
-		setIs3D(!is3D);
-	};
-
-	const recenter = () => {
-		if (!map.current) return;
-		map.current.easeTo({
-			center: [15.2551, 54.526],
-			zoom: 3.8,
-			pitch: is3D ? 45 : 0,
-			bearing: 0,
-			duration: 1200,
-			essential: true,
-		});
-	};
-
 	return (
 		<div className="group relative size-full overflow-hidden">
 			{/* The Map Container */}
@@ -324,54 +299,32 @@ export default function MapWrapper() {
 			)}
 
 			{/* UI Overlay: Info Panel */}
-			<div className="pointer-events-none absolute left-4 top-4 z-10 max-w-[calc(100%-32px)] md:left-8 md:top-8 md:max-w-[280px]">
-				<div className="pointer-events-auto rounded-[2.5rem] border border-white/40 bg-white/90 p-5 shadow-[0_20px_40px_rgba(0,0,0,0.15)] backdrop-blur-2xl transition-all hover:scale-[1.01] md:p-6">
-					<div className="mb-3 flex items-center gap-3 md:mb-4">
-						<div className="flex size-9 items-center justify-center rounded-2xl bg-indigo-600 shadow-lg shadow-indigo-200 md:size-10">
-							<Globe className="size-4 text-white md:size-5" />
+			<div className="pointer-events-none absolute left-4 top-4 z-10 max-w-[280px] md:left-8 md:top-8">
+				<div className="pointer-events-auto rounded-3xl border border-white bg-white/90 p-5 shadow-[0_20px_40px_rgba(0,0,0,0.15)] backdrop-blur-2xl transition-all hover:scale-[1.02] md:p-6">
+					<div className="mb-4 flex items-center gap-3">
+						<div className="flex size-10 items-center justify-center rounded-2xl bg-indigo-600 shadow-lg shadow-indigo-200">
+							<Globe className="size-5 text-white" />
 						</div>
 						<div>
-							<h2 className="text-lg font-black leading-tight tracking-tight text-indigo-950 md:text-xl">
-								Brand Hub
-							</h2>
+							<h2 className="text-xl font-black leading-tight tracking-tight text-indigo-950">Brand Hub</h2>
 							<p className="text-[10px] font-black uppercase tracking-widest text-indigo-500">
 								Live Partner Map
 							</p>
 						</div>
 					</div>
-					<div className="mb-3 h-px bg-gradient-to-r from-indigo-100 to-transparent md:mb-4" />
-					<p className="text-[11px] font-medium leading-relaxed text-indigo-900/70 md:text-xs">
+					<div className="mb-4 h-px bg-gradient-to-r from-indigo-100 to-transparent" />
+					<p className="text-xs font-medium leading-relaxed text-indigo-900/60">
 						Explore our network of verified European partners. Our map uses{" "}
-						<span className="font-bold text-indigo-600">3D terrain</span> to visualize the origin of your
-						products.
+						<span className="font-bold text-indigo-600">GPU-accelerated 3D terrain</span> to visualize the
+						origin of your products.
 					</p>
-					<div className="mt-3 flex items-center gap-2 md:mt-4">
-						<span className="flex size-1.5 animate-pulse rounded-full bg-green-500" />
-						<span className="text-[10px] font-bold text-indigo-900/40 md:text-[11px]">
+					<div className="mt-4 flex items-center gap-2">
+						<span className="flex size-2 animate-pulse rounded-full bg-green-500" />
+						<span className="text-[11px] font-bold text-indigo-900/40">
 							{vendors.length} Partners Registered
 						</span>
 					</div>
 				</div>
-			</div>
-
-			{/* Custom Map Controls Layer */}
-			<div className="absolute bottom-44 right-4 z-10 flex flex-col gap-2 md:right-8">
-				<button
-					onClick={toggle3D}
-					className="group flex size-10 items-center justify-center rounded-2xl border border-white/40 bg-white/90 font-black text-indigo-950 shadow-lg backdrop-blur-xl transition-all hover:bg-white active:scale-95 md:size-12"
-					title={is3D ? "Switch to 2D" : "Switch to 3D"}
-				>
-					<span className="text-xs transition-transform group-hover:scale-110 md:text-sm">
-						{is3D ? "2D" : "3D"}
-					</span>
-				</button>
-				<button
-					onClick={recenter}
-					className="group flex size-10 items-center justify-center rounded-2xl border border-white/40 bg-white/80 text-indigo-950 shadow-lg backdrop-blur-xl transition-all hover:bg-white active:scale-95 md:size-12"
-					title="Recenter Map"
-				>
-					<Globe className="size-5 transition-transform group-hover:rotate-12 md:size-6" />
-				</button>
 			</div>
 		</div>
 	);
