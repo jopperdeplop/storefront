@@ -151,6 +151,7 @@ export default function MapWrapper() {
 				center: [15.2551, 54.526],
 				zoom: 3.8,
 				pitch: 45,
+				maxPitch: 85,
 				bearing: 0,
 			});
 
