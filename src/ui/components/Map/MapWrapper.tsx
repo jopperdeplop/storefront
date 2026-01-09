@@ -61,6 +61,7 @@ export default function MapWrapper() {
 				justify-content: center;
 				color: white;
 				transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+				touch-action: none;
 			}
 			.marker-icon svg {
 				transform: rotate(45deg);
@@ -130,6 +131,9 @@ export default function MapWrapper() {
 			.marker-pin {
 				pointer-events: auto;
 			}
+			#map-container canvas {
+				touch-action: none !important;
+			}
 		`;
 		document.head.appendChild(style);
 		return () => {
@@ -159,8 +163,13 @@ export default function MapWrapper() {
 				pitch: 45,
 				maxPitch: 85,
 				bearing: 0,
-				doubleClickZoom: false, // Disable default zoom to use for angle toggle
+				doubleClickZoom: false, // Disable mouse double-click zoom
 			});
+
+			// Disable tap-to-zoom for touch devices if the handler exists
+			if ((map.current as any).tapZoom) {
+				(map.current as any).tapZoom.disable();
+			}
 
 			map.current.on("load", () => {
 				if (!map.current) return;
@@ -182,7 +191,7 @@ export default function MapWrapper() {
 			});
 
 			// Toggle angle (pitch) on double press/click
-			map.current.on("dblclick", () => {
+			const togglePitch = () => {
 				if (map.current) {
 					const currentPitch = map.current.getPitch();
 					const nextPitch = currentPitch > 10 ? 0 : 60;
@@ -192,7 +201,30 @@ export default function MapWrapper() {
 						essential: true,
 					});
 				}
+			};
+
+			map.current.on("dblclick", (e) => {
+				e.preventDefault();
+				togglePitch();
 			});
+
+			// Custom Double-Tap detection for mobile
+			let lastTap = 0;
+			mapContainer.current?.addEventListener(
+				"touchstart",
+				(e) => {
+					const now = Date.now();
+					if (now - lastTap < 300) {
+						if (e.touches.length === 1) {
+							// Only toggle for single-finger double tap
+							e.preventDefault();
+							togglePitch();
+						}
+					}
+					lastTap = now;
+				},
+				{ passive: false },
+			);
 		} catch (err) {
 			console.error("[MapWrapper] FAILED TO INITIALIZE MAP:", err);
 		}
@@ -278,7 +310,7 @@ export default function MapWrapper() {
 	return (
 		<div className="group relative size-full overflow-hidden">
 			{/* The Map Container */}
-			<div ref={mapContainer} className="size-full" />
+			<div id="map-container" ref={mapContainer} className="size-full" style={{ touchAction: "none" }} />
 
 			{/* Loading State Overlay */}
 			{loading && !mapLoaded && (
