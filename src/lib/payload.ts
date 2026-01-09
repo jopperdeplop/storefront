@@ -5,18 +5,15 @@ interface BrandHeroBlock {
 	logo?: { url: string };
 	coverImage?: { url: string };
 	tagline?: string;
-	socialLinks?: {
-		instagram?: string;
-		youtube?: string;
-	};
+	instagramUrl?: string;
+	youtubeUrl?: string;
 }
 
 interface BrandAboutBlock {
 	blockType: "brand-about";
 	heading?: string;
-	story?: { root?: { children?: Array<{ children?: Array<{ text?: string }> }> } };
+	story?: string;
 	foundingYear?: number;
-	images?: Array<{ image?: { url: string }; caption?: string }>;
 }
 
 type BrandBlock = BrandHeroBlock | BrandAboutBlock;
