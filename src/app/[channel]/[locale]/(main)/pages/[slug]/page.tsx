@@ -1,9 +1,13 @@
 import { notFound } from "next/navigation";
 import { type Metadata } from "next";
+import { Suspense } from "react";
 import edjsHTML from "editorjs-html";
 import xss from "xss";
 import { PageGetBySlugDocument, type LanguageCodeEnum } from "@/gql/graphql";
 import { executeGraphQL } from "@/lib/graphql";
+import { getBrandPageBySlug } from "@/lib/payload";
+import { BrandPageRenderer } from "@/ui/components/BrandPageRenderer";
+import { BrandProductShowcase } from "@/ui/components/BrandProductShowcase";
 
 const parser = edjsHTML();
 
@@ -38,7 +42,7 @@ export default async function Page(props: {
 	const params = await props.params;
 	const localeEnum = params.locale.toUpperCase() as LanguageCodeEnum;
 
-	// 1. Fetch Page Content
+	// 1. Fetch Page Content from Saleor
 	const { page } = await executeGraphQL(PageGetBySlugDocument, {
 		variables: {
 			slug: params.slug,
@@ -51,6 +55,28 @@ export default async function Page(props: {
 		notFound();
 	}
 
+	// 2. Check if this is a Brand page by checking pageType
+	const isBrandPage = page.pageType?.slug === "brand" || page.pageType?.name?.toLowerCase() === "brand";
+
+	// 3. If it's a brand page, try to fetch rich content from PayloadCMS
+	if (isBrandPage) {
+		const brandPage = await getBrandPageBySlug(params.slug, params.locale);
+
+		if (brandPage && brandPage.layout && brandPage.layout.length > 0) {
+			// Render rich brand page from PayloadCMS
+			return (
+				<>
+					<BrandPageRenderer brandName={brandPage.brandName} layout={brandPage.layout} />
+					<Suspense fallback={<div className="mx-auto max-w-7xl px-4 py-12">Loading products...</div>}>
+						<BrandProductShowcase brandSlug={params.slug} channel={params.channel} locale={params.locale} />
+					</Suspense>
+				</>
+			);
+		}
+		// If PayloadCMS content not available, fall through to default Saleor rendering
+	}
+
+	// 4. Default Saleor page rendering
 	const pageWithTranslation = page as typeof page & WithTranslation;
 	const title = pageWithTranslation.translation?.title || page.title;
 	const content = pageWithTranslation.translation?.content || page.content;
